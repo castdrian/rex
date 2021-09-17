@@ -1,5 +1,5 @@
-mod backend;
+mod gui;
 
 fn main() {
-    backend::run();
+    gui::build_ui();
 }
