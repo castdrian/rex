@@ -1,8 +1,7 @@
 use druid::widget::{Align, Flex, Label, TextBox, Button, Image};
+use druid::piet::{ImageBuf, InterpolationMode};
 use druid::{AppLauncher, Data, Lens, LocalizedString, Widget, WindowDesc, WidgetExt};
 use crate::backend;
-const VERTICAL_WIDGET_SPACING: f64 = 20.0;
-const TEXT_BOX_WIDTH: f64 = 200.0;
 const WINDOW_TITLE: LocalizedString<InitState> = LocalizedString::new("Rex - The rust based Pokédex");
 
 #[derive(Clone, Data, Lens)]
@@ -15,7 +14,6 @@ fn build_root_widget() -> impl Widget<InitState> {
     let hash = Label::new(format!("#"));
     let dex = Label::new(format!("Dex"));
 
-    // a textbox that modifies `name`.
     let numbox = TextBox::new()
         .with_placeholder("658")
         .fix_width(70.0)
@@ -23,11 +21,12 @@ fn build_root_widget() -> impl Widget<InitState> {
 
     let namebox = TextBox::new()
         .with_placeholder("Greninja")
-        .fix_width(TEXT_BOX_WIDTH)
+        .fix_width(200.00)
         .lens(InitState::name);
     
     let searchbutton = Button::new("Search!").on_click(|_ctx, _data: &mut u32, _env| {
-        backend::run();
+        let result = backend::run();
+        println!("{:?}", result.data);
     }).lens(InitState::button);
 
     let inputrow = Flex::row()
@@ -35,14 +34,18 @@ fn build_root_widget() -> impl Widget<InitState> {
         .with_spacer(25.0)
         .with_child(hash)
         .with_child(numbox)
-        .with_spacer(VERTICAL_WIDGET_SPACING)
+        .with_spacer(20.0)
         .with_child(namebox)
         .with_child(searchbutton);
 
 
     let speciesl: Label<String> = Label::new(format!("Species"));
+    let image_data = ImageBuf::empty();
+    let sprite = Image::new(image_data);
 
     let outputrow = Flex::row()
+        .with_child(sprite)
+        .with_spacer(20.0)
         .with_child(speciesl).lens(InitState::name);
 
     let column = Flex::column()

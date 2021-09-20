@@ -20,18 +20,18 @@ pub struct NumQuery;
 pub struct NameQuery;
 
 #[tokio::main]
-async fn fetch_dex_num(num: num_query::Variables) -> Result<(), Box<dyn Error>> {
+async fn fetch_dex_num(num: num_query::Variables) -> Result<graphql_client::Response<num_query::ResponseData>, Box<dyn Error>> {
     let request_body = NumQuery::build_query(num);
 
     let client = reqwest::Client::new();
     let res = client.post("https://graphqlpokemon.favware.tech/").json(&request_body).send().await?;
     let response_body: Response<num_query::ResponseData> = res.json().await?;
-    println!("{:#?}", response_body);
-    Ok(())
+    //println!("{:#?}", response_body);
+    Ok(response_body)
 }
 
 #[tokio::main]
-async fn fetch_dex_name(name: name_query::Variables) -> Result<(), Box<dyn Error>> {
+async fn _fetch_dex_name(name: name_query::Variables) -> Result<(), Box<dyn Error>> {
     let request_body = NameQuery::build_query(name);
 
     let client = reqwest::Client::new();
@@ -41,12 +41,12 @@ async fn fetch_dex_name(name: name_query::Variables) -> Result<(), Box<dyn Error
     Ok(())
 }
 
-pub fn run() {
+pub fn run() -> Response<num_query::ResponseData> {
         let dexnum = num_query::Variables{
             num: 685
         };
-        fetch_dex_num(dexnum).expect("Query unsuccessful!");
-    
+        fetch_dex_num(dexnum).expect("Query unsuccessful!")
+
         /* let dexname = name_query::Variables{
             pokemon: String::from(matches.value_of("name").unwrap())
         };
