@@ -1,5 +1,5 @@
 query NameQuery($pokemon: String!) {
-  getPokemonDetailsByFuzzy(pokemon: $pokemon, reverse: true, take: 1) {
+  getFuzzyPokemon(pokemon: $pokemon, take: 1) {
     num
     species
     types

@@ -1,5 +1,5 @@
 query NumQuery($num: Int!) {
-  getPokemonDetailsByNumber(pokemon: $num, reverse: true, take: 1) {
+  getPokemonByDexNumber(number: $num) {
     num
     species
     types
