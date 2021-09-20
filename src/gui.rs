@@ -1,6 +1,6 @@
 use druid::widget::{Align, Flex, Label, TextBox, Button, Image};
 use druid::{AppLauncher, Data, Lens, LocalizedString, Widget, WindowDesc, WidgetExt};
-
+use crate::backend;
 const VERTICAL_WIDGET_SPACING: f64 = 20.0;
 const TEXT_BOX_WIDTH: f64 = 200.0;
 const WINDOW_TITLE: LocalizedString<InitState> = LocalizedString::new("Rex - The rust based Pokédex");
@@ -8,6 +8,7 @@ const WINDOW_TITLE: LocalizedString<InitState> = LocalizedString::new("Rex - The
 #[derive(Clone, Data, Lens)]
 struct InitState {
     name: String,
+    button: u32
 }
 
 fn build_root_widget() -> impl Widget<InitState> {
@@ -25,7 +26,9 @@ fn build_root_widget() -> impl Widget<InitState> {
         .fix_width(TEXT_BOX_WIDTH)
         .lens(InitState::name);
     
-    let searchbutton = Button::new("Search!");
+    let searchbutton = Button::new("Search!").on_click(|_ctx, _data: &mut u32, _env| {
+        backend::run();
+    }).lens(InitState::button);
 
     let inputrow = Flex::row()
         .with_child(dex)
@@ -56,6 +59,7 @@ pub fn build_ui() {
         .window_size((600.0, 400.0));
 
     let initial_state = InitState {
+        button: 1,
         name: "".into(),
     };
 

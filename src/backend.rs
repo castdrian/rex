@@ -2,7 +2,6 @@ use graphql_client::{GraphQLQuery, Response};
 use std::error::Error;
 use reqwest;
 use tokio;
-use clap::{App, load_yaml};
 
 #[derive(GraphQLQuery)]
 #[graphql(
@@ -43,20 +42,13 @@ async fn fetch_dex_name(name: name_query::Variables) -> Result<(), Box<dyn Error
 }
 
 pub fn run() {
-    let yaml = load_yaml!("config/cli.yaml");
-    let matches = App::from(yaml).get_matches();
-
-    if matches.is_present("num") {
         let dexnum = num_query::Variables{
-            num: matches.value_of("num").unwrap().parse::<i64>().unwrap()
+            num: 685
         };
         fetch_dex_num(dexnum).expect("Query unsuccessful!");
-    } else if matches.is_present("name"){
-        let dexname = name_query::Variables{
+    
+        /* let dexname = name_query::Variables{
             pokemon: String::from(matches.value_of("name").unwrap())
         };
-        fetch_dex_name(dexname).expect("Query unsuccessful!");
-    } else {
-        println!("Please provide an argument!");
-    }
+        fetch_dex_name(dexname).expect("Query unsuccessful!"); */
 }
