@@ -20,7 +20,7 @@ pub struct NumQuery;
 pub struct NameQuery;
 
 #[tokio::main]
-async fn fetch_dex_num(num: num_query::Variables) -> Result<graphql_client::Response<num_query::ResponseData>, Box<dyn Error>> {
+pub async fn fetch_dex_num(num: num_query::Variables) -> Result<graphql_client::Response<num_query::ResponseData>, Box<dyn Error>> {
     let request_body = NumQuery::build_query(num);
 
     let client = reqwest::Client::new();
@@ -43,7 +43,7 @@ async fn _fetch_dex_name(name: name_query::Variables) -> Result<(), Box<dyn Erro
 
 pub fn run() -> Response<num_query::ResponseData> {
         let dexnum = num_query::Variables{
-            num: 685
+            num: 658
         };
         fetch_dex_num(dexnum).expect("Query unsuccessful!")
 

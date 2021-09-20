@@ -24,9 +24,14 @@ fn build_root_widget() -> impl Widget<InitState> {
         .fix_width(200.00)
         .lens(InitState::name);
     
-    let searchbutton = Button::new("Search!").on_click(|_ctx, _data: &mut u32, _env| {
-        let result = backend::run();
-        println!("{:?}", result.data);
+    let searchbutton = Button::new("Search!")
+    .on_click(|_ctx, _data: &mut u32, _env| {
+        let dexnum = backend::num_query::Variables{
+            num: 658
+        };
+        let result = backend::fetch_dex_num(dexnum).expect("Query unsuccessful!");
+        let response_data = result.data.expect("Missing response data!");
+        println!("{:?}", response_data.get_pokemon_by_dex_number.species);
     }).lens(InitState::button);
 
     let inputrow = Flex::row()
