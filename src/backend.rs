@@ -1,5 +1,6 @@
 use graphql_client::{GraphQLQuery, Response};
 use std::error::Error;
+use clap::{App, load_yaml};
 use reqwest;
 use tokio;
 
@@ -26,12 +27,12 @@ pub async fn fetch_dex_num(num: num_query::Variables) -> Result<graphql_client::
     let client = reqwest::Client::new();
     let res = client.post("https://graphqlpokemon.favware.tech/").json(&request_body).send().await?;
     let response_body: Response<num_query::ResponseData> = res.json().await?;
-    //println!("{:#?}", response_body);
+    println!("{:#?}", response_body);
     Ok(response_body)
 }
 
 #[tokio::main]
-async fn _fetch_dex_name(name: name_query::Variables) -> Result<(), Box<dyn Error>> {
+async fn fetch_dex_name(name: name_query::Variables) -> Result<(), Box<dyn Error>> {
     let request_body = NameQuery::build_query(name);
 
     let client = reqwest::Client::new();
@@ -41,14 +42,21 @@ async fn _fetch_dex_name(name: name_query::Variables) -> Result<(), Box<dyn Erro
     Ok(())
 }
 
-pub fn run() -> Response<num_query::ResponseData> {
-        let dexnum = num_query::Variables{
-            num: 658
-        };
-        fetch_dex_num(dexnum).expect("Query unsuccessful!")
+pub fn run() {
+    let yaml = load_yaml!("config/cli.yaml");
+    let matches = App::from(yaml).get_matches();
 
-        /* let dexname = name_query::Variables{
+    if matches.is_present("num") {
+        let dexnum = num_query::Variables{
+            num: matches.value_of("num").unwrap().parse::<i64>().unwrap()
+        };
+        fetch_dex_num(dexnum).expect("Query unsuccessful!");
+    } else if matches.is_present("name"){
+        let dexname = name_query::Variables{
             pokemon: String::from(matches.value_of("name").unwrap())
         };
-        fetch_dex_name(dexname).expect("Query unsuccessful!"); */
+        fetch_dex_name(dexname).expect("Query unsuccessful!");
+    } else {
+        println!("Please provide an argument!");
+    }
 }

@@ -1,0 +1,16 @@
+name: rex
+version: "1.0"
+author: Adrian Castro <adrifcastr@gmail.com>
+about: Rex - The rust based PokéDex
+args:
+    - num:
+        long: --num
+        value_name: NUMBER
+        about: Grab the dex entry by number
+        takes_value: true
+    - name:
+        long: --name
+        about: Sets the input file to use
+        value_name: NAME
+        about: Grab the dex entry by name
+        takes_value: true
