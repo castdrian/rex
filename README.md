@@ -2,5 +2,8 @@
 
 ```
 rex --num 719
-rex --name diancie
+rex --name volcanion
 ```
+
+![](https://cdn.adriancastro.dev/pEzaq2w.png)
+![](https://cdn.adriancastro.dev/s1DfFDA.png)
