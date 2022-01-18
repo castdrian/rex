@@ -1,5 +1,6 @@
 use comfy_table::Table;
 use crate::fetch;
+use voca_rs::*;
 
 pub fn show_numresult(response: graphql_client::Response<fetch::num_query::ResponseData>) {
 	let mon = response.data.unwrap().get_pokemon_by_dex_number;
@@ -10,7 +11,7 @@ pub fn show_numresult(response: graphql_client::Response<fetch::num_query::Respo
 		.set_table_width(80)
 		.add_row(vec![
             "Species:",
-            &mon.species,
+            &case::capitalize(&mon.species, true),
         ])
 		.add_row(vec![
 			"Num:",
@@ -22,7 +23,7 @@ pub fn show_numresult(response: graphql_client::Response<fetch::num_query::Respo
 		])
 		.add_row(vec![
 			"Abilities:",
-			&mon.abilities.first,
+			&format!("{}{}{}", &mon.abilities.first, if mon.abilities.second == None { format!("") } else { format!(" / {}", &mon.abilities.second.as_ref().unwrap()) }, if mon.abilities.hidden == None { format!("") } else { format!(" | HA: {}", &mon.abilities.hidden.as_ref().unwrap()) }),
 		])
 		.add_row(vec![
 			"Height:",
@@ -50,7 +51,7 @@ pub fn show_nameresult(response: graphql_client::Response<fetch::name_query::Res
 		.set_table_width(80)
 		.add_row(vec![
             "Species:",
-            &mon.species,
+            &case::capitalize(&mon.species, true),
         ])
 		.add_row(vec![
 			"Num:",
@@ -62,7 +63,7 @@ pub fn show_nameresult(response: graphql_client::Response<fetch::name_query::Res
 		])
 		.add_row(vec![
 			"Abilities:",
-			&mon.abilities.first,
+			&format!("{}{}{}", &mon.abilities.first, if mon.abilities.second == None { format!("") } else { format!(" / {}", &mon.abilities.second.as_ref().unwrap()) }, if mon.abilities.hidden == None { format!("") } else { format!(" | HA: {}", &mon.abilities.hidden.as_ref().unwrap()) }),
 		])
 		.add_row(vec![
 			"Height:",
