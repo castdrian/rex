@@ -1,9 +1,8 @@
 ### Rex - The rust based PokéDex
 
 ```
-rex --num 719
-rex --name volcanion
+rex --num 722
+rex --name rowlet
 ```
 
-![](https://cdn.adriancastro.dev/pEzaq2w.png)
-![](https://cdn.adriancastro.dev/s1DfFDA.png)
+![](https://cdn.adriancastro.dev/xhXpbru.png)

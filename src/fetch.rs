@@ -36,6 +36,5 @@ pub async fn fetch_dex_name(name: name_query::Variables) -> Result<graphql_clien
     let client = reqwest::Client::new();
     let res = client.post("https://graphqlpokemon.favware.tech/").json(&request_body).send().await?;
     let response_body: Response<name_query::ResponseData> = res.json().await?;
-	println!("{:?}", response_body);
     Ok(response_body)
 }
