@@ -1,5 +1,6 @@
 use crate::fetch;
 use crate::constants;
+use crate::images;
 use voca_rs::*;
 use colored::Colorize;
 use term_table::table_cell::TableCell;
@@ -64,4 +65,5 @@ pub fn show_nameresult(response: graphql_client::Response<fetch::name_query::Res
 		TableCell::new_with_col_span(mon.flavor_texts.get(0).unwrap().flavor.clone(), 1),
 	]));
 	println!("{}", table.render());
+	images::show_sprite(&mon.sprite);
 }
