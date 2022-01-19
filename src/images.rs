@@ -8,7 +8,7 @@ fn fetch_image(url: &str) -> Result<image::DynamicImage, Box<dyn Error>>{
 	Ok(image)
 }
 
-pub fn show_sprite(sprite: &str) {
+pub fn show_sprite(sprite: &str, width: Option<u32>, height: Option<u32>, x: u16, y: i16) {
 	let image = fetch_image(sprite).expect("Failed to fetch image");
 
 	let conf = Config {
@@ -16,10 +16,10 @@ pub fn show_sprite(sprite: &str) {
 		restore_cursor: true,
 		transparent: true,
 		truecolor: true,
-		width: Some(28),
-		height: Some(14),
-		x: 52,
-		y: -15,
+		width: width,
+		height: height,
+		x: x,
+		y: y,
 		..Default::default()
 	};
 
