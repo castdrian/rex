@@ -10,7 +10,7 @@ pub fn show_numresult(response: graphql_client::Response<fetch::num_query::Respo
 	let mon = response.data.unwrap().get_pokemon_by_dex_number;
 	
 	let mut table = term_table::Table::new();
-	table.max_column_width = 60;
+	table.max_column_width = 35;
 
 	table.style = term_table::TableStyle::extended();
 	table.add_row(Row::new(vec![
