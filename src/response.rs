@@ -18,7 +18,7 @@ pub fn show_numresult(response: graphql_client::Response<fetch::num_query::Respo
 	]));
 	table.add_row(Row::new(vec![
 		TableCell::new("Types:"),
-		TableCell::new(format!("{}{}", constants::assign_color(mon.types.get(0).unwrap()), if mon.types.len() > 1 { format!(" / {}", constants::assign_color(mon.types.get(1).unwrap())) } else { format!("") })),
+		TableCell::new(format!("{}{}", constants::assign_typecolor(mon.types.get(0).unwrap()), if mon.types.len() > 1 { format!(" / {}", constants::assign_typecolor(mon.types.get(1).unwrap())) } else { format!("") })),
 	]));
 	table.add_row(Row::new(vec![
 		TableCell::new("Abilities:"),
@@ -49,7 +49,7 @@ pub fn show_nameresult(response: graphql_client::Response<fetch::name_query::Res
 	]));
 	table.add_row(Row::new(vec![
 		TableCell::new("Types:"),
-		TableCell::new(format!("{}{}", constants::assign_color(mon.types.get(0).unwrap()), if mon.types.len() > 1 { format!(" / {}", constants::assign_color(mon.types.get(1).unwrap())) } else { format!("") })),
+		TableCell::new(format!("{}{}", format!("{}{}{}", constants::get_colored_space(mon.types.get(0).unwrap()), constants::assign_typecolor(mon.types.get(0).unwrap()), constants::get_colored_space(mon.types.get(0).unwrap())), if mon.types.len() > 1 { format!("{}", format!("{}{}{}", constants::get_colored_space(mon.types.get(1).unwrap()), constants::assign_typecolor(mon.types.get(1).unwrap()), constants::get_colored_space(mon.types.get(1).unwrap()))) } else { format!("") })),
 	]));
 	table.add_row(Row::new(vec![
 		TableCell::new("Abilities:"),
