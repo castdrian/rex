@@ -41,7 +41,7 @@ pub fn show_nameresult(response: graphql_client::Response<fetch::name_query::Res
 	let mon = res.get_fuzzy_pokemon.get(0).unwrap();
 
 	let mut table = term_table::Table::new();
-	table.max_column_width = 60;
+	table.max_column_width = 35;
 
 	table.style = term_table::TableStyle::extended();
 	table.add_row(Row::new(vec![

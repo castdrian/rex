@@ -18,8 +18,8 @@ pub fn show_sprite(sprite: &str) {
 		truecolor: true,
 		width: Some(28),
 		height: Some(14),
-		x: 40,
-		y: 0,
+		x: 52,
+		y: -15,
 		..Default::default()
 	};
 
