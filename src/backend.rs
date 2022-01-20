@@ -2,7 +2,7 @@ use clap::{App, load_yaml};
 use crate::fetch;
 use crate::response;
 
-pub fn run() {
+pub fn main() {
     let yaml = load_yaml!("config/cli.yaml");
     let matches = App::from(yaml).get_matches();
 

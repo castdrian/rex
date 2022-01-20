@@ -5,5 +5,5 @@ mod constants;
 mod images;
 
 fn main() {
-    backend::run();
+    backend::main();
 }
