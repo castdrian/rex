@@ -16,10 +16,10 @@ pub fn show_sprite(sprite: &str, width: Option<u32>, height: Option<u32>, x: u16
 		restore_cursor: true,
 		transparent: true,
 		truecolor: true,
-		width: width,
-		height: height,
-		x: x,
-		y: y,
+		width,
+		height,
+		x,
+		y,
 		..Default::default()
 	};
 
