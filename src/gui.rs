@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
 use eframe::egui;
+use crate::fetch;
 
 pub fn main() {
 	let options = eframe::NativeOptions {
@@ -26,9 +27,9 @@ impl Default for MyApp {
     fn default() -> Self {
         Self {
             search: "".to_owned(),
-			species: "Dragapult".to_owned(),
-			types: "Ghost/Dragon".to_owned(),
-			abilities: "Clear Body/Infiltrator".to_owned()
+			species: "".to_owned(),
+			types: "".to_owned(),
+			abilities: "".to_owned()
         }
     }
 }
@@ -37,15 +38,34 @@ impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.horizontal(|ui| {
-				ui.add(egui::TextEdit::singleline(&mut self.search)
-				.hint_text("Pokémon | 000").desired_width(150.0));
+				let searchbox = ui.add(egui::TextEdit::singleline(&mut self.search)
+				.hint_text("Pokémon | 000").desired_width(425.0));
 
-				if ui.button("Fetch Info!").clicked() {
-					self.search = "Yveltal".to_owned();
+				if searchbox.lost_focus() && searchbox.ctx.input().key_pressed(egui::Key::Enter) {
+					if self.search.trim().is_empty() {
+						return;
+					}
+					if self.search.trim().parse::<i64>().is_ok() {
+						let query = fetch::num_query::Variables{
+							num: self.search.trim().parse::<i64>().unwrap()
+						};
+						let response = fetch::fetch_dex_num(query).expect("Query unsuccessful!");
+						println!("Number: {}", self.search);
+						println!("Result: {:?}", response);
+					} else {
+						let query = fetch::name_query::Variables{
+							pokemon: String::from(self.search.trim())
+						};
+						let response = fetch::fetch_dex_name(query).expect("Query unsuccessful!");
+						println!("Name: {}", self.search);
+						println!("Result: {:?}", response);
+					}
+					self.search = "".to_owned();
 				}
             });
 			ui.horizontal(|ui| {
                 ui.label("Species: ");
+                ui.label(&self.species);
             });
 			ui.horizontal(|ui| {
                 ui.label("Types: ");
