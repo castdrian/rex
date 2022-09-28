@@ -1,6 +1,7 @@
 use clap::{App, load_yaml};
 use crate::fetch;
 use crate::response;
+use crate::gui;
 
 pub fn main() {
     let yaml = load_yaml!("config/cli.yaml");
@@ -19,6 +20,6 @@ pub fn main() {
         let response = fetch::fetch_dex_name(dexname).expect("Query unsuccessful!");
 		response::show_nameresult(response);
     } else {
-        println!("Please provide an argument!");
+        gui::main();
     }
 }

@@ -1,4 +1,4 @@
-### Rex - The rust based PokéDex
+### Rex - The Rust based PokéDex
 
 ```
 rex --num 722

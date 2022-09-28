@@ -1,7 +1,7 @@
 name: rex
 version: "1.0"
 author: Adrian Castro <adrifcastr@gmail.com>
-about: Rex - The rust based PokéDex
+about: Rex - The Rust based PokéDex
 args:
     - num:
         long: --num
