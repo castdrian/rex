@@ -1,12 +1,14 @@
 use crate::fetch;
 use crate::constants;
+use crate::fetch::name_query::NameQueryGetFuzzyPokemon;
+use crate::fetch::num_query::NumQueryGetPokemonByDexNumber;
 use crate::images;
 use voca_rs::*;
 use colored::Colorize;
 use term_table::table_cell::TableCell;
 use term_table::row::Row;
 
-pub fn show_numresult(response: graphql_client::Response<fetch::num_query::ResponseData>) {
+pub fn cli_show_numresult(response: graphql_client::Response<fetch::num_query::ResponseData>) {
 	let mon = response.data.unwrap().get_pokemon_by_dex_number;
 	
 	let mut table = term_table::Table::new();
@@ -39,7 +41,7 @@ pub fn show_numresult(response: graphql_client::Response<fetch::num_query::Respo
 	images::show_sprite(&mon.sprite, Some(14), Some(7), 3, -17);
 }
 
-pub fn show_nameresult(response: graphql_client::Response<fetch::name_query::ResponseData>) {
+pub fn cli_show_nameresult(response: graphql_client::Response<fetch::name_query::ResponseData>) {
 	let res = response.data.unwrap();
 	let mon = res.get_fuzzy_pokemon.get(0).unwrap();
 	
@@ -71,4 +73,11 @@ pub fn show_nameresult(response: graphql_client::Response<fetch::name_query::Res
 
 	
 	images::show_sprite(&mon.sprite, Some(14), Some(7), 3, -17);
+}
+
+pub fn gui_get_numresult(response: graphql_client::Response<fetch::num_query::ResponseData>) -> NumQueryGetPokemonByDexNumber {
+	return response.data.unwrap().get_pokemon_by_dex_number;
+}
+pub fn gui_get_nameresult(response: graphql_client::Response<fetch::name_query::ResponseData>) -> NameQueryGetFuzzyPokemon {
+	return response.data.unwrap().get_fuzzy_pokemon.get(0).unwrap().clone();
 }

@@ -7,7 +7,7 @@ use tokio;
 #[graphql(
     schema_path = "src/gql/schema.graphql",
     query_path = "src/gql/num_query.graphql",
-    response_derives = "Debug"
+    response_derives = "Debug, Clone"
 )]
 pub struct NumQuery;
 
@@ -15,7 +15,7 @@ pub struct NumQuery;
 #[graphql(
     schema_path = "src/gql/schema.graphql",
     query_path = "src/gql/name_query.graphql",
-    response_derives = "Debug"
+    response_derives = "Debug, Clone"
 )]
 pub struct NameQuery;
 

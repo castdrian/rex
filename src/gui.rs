@@ -1,7 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
 use eframe::egui;
-use crate::fetch;
+use crate::{fetch, response};
 
 pub fn main() {
 	let options = eframe::NativeOptions {
@@ -52,6 +52,7 @@ impl eframe::App for MyApp {
 						let response = fetch::fetch_dex_num(query).expect("Query unsuccessful!");
 						println!("Number: {}", self.search);
 						println!("Result: {:?}", response);
+						let mon = response::gui_get_numresult(response);
 					} else {
 						let query = fetch::name_query::Variables{
 							pokemon: String::from(self.search.trim())
@@ -59,6 +60,7 @@ impl eframe::App for MyApp {
 						let response = fetch::fetch_dex_name(query).expect("Query unsuccessful!");
 						println!("Name: {}", self.search);
 						println!("Result: {:?}", response);
+						let mon = response::gui_get_nameresult(response);
 					}
 					self.search = "".to_owned();
 				}
