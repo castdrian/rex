@@ -1,7 +1,9 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
 use eframe::egui;
-use crate::{fetch, response};
+use egui_extras::RetainedImage;
+use voca_rs::*;
+use crate::{fetch, response, images::fetch_empty_image};
 
 pub fn main() {
 	let options = eframe::NativeOptions {
@@ -18,18 +20,33 @@ pub fn main() {
 
 struct MyApp {
     search: String,
+	description: String,
     species: String,
     types: String,
-    abilities: String
+	ptype: RetainedImage,
+	stype: RetainedImage,
+    abilities: String,
+	dimensions: String
 }
 
 impl Default for MyApp {
     fn default() -> Self {
         Self {
             search: "".to_owned(),
+			description: "".to_owned(),
 			species: "".to_owned(),
 			types: "".to_owned(),
-			abilities: "".to_owned()
+			ptype: RetainedImage::from_image_bytes(
+                "blank.png",
+                &fetch_empty_image().unwrap(),
+            )
+            .unwrap(),
+			stype: RetainedImage::from_image_bytes(
+				"blank.png",
+				&fetch_empty_image().unwrap(),
+			).unwrap(),
+			abilities: "".to_owned(),
+			dimensions: "".to_owned()
         }
     }
 }
@@ -50,16 +67,18 @@ impl eframe::App for MyApp {
 							num: self.search.trim().parse::<i64>().unwrap()
 						};
 						let response = fetch::fetch_dex_num(query).expect("Query unsuccessful!");
-						println!("Number: {}", self.search);
-						println!("Result: {:?}", response);
 						let mon = response::gui_get_numresult(response);
+
+						self.species = format!("#{} {} | {}: {} {}: {}", mon.num, case::capitalize(&mon.species, true), "♂", mon.gender.male, "♀", mon.gender.female).to_owned();
+						self.types = format!("{}{}", format!("{}", mon.types.get(0).unwrap()), if mon.types.len() > 1 { format!("/{}", mon.types.get(1).unwrap()) } else { format!("") }).to_owned();
+						self.abilities = format!("{}{}{}", mon.abilities.first, if mon.abilities.second == None { format!("") } else { format!(" / {}", mon.abilities.second.as_ref().unwrap()) }, if mon.abilities.hidden == None { format!("") } else { format!(" | HA: {}", mon.abilities.hidden.as_ref().unwrap()) }).to_owned();
+						self.dimensions = format!("Height: {} M | Weight: {} KG", mon.height, mon.weight).to_owned();
+
 					} else {
 						let query = fetch::name_query::Variables{
 							pokemon: String::from(self.search.trim())
 						};
 						let response = fetch::fetch_dex_name(query).expect("Query unsuccessful!");
-						println!("Name: {}", self.search);
-						println!("Result: {:?}", response);
 						let mon = response::gui_get_nameresult(response);
 					}
 					self.search = "".to_owned();
@@ -71,14 +90,27 @@ impl eframe::App for MyApp {
             });
 			ui.horizontal(|ui| {
                 ui.label("Types: ");
+				ui.label(&self.types);
+				ui.add(egui::Image::new(self.ptype.texture_id(ctx), self.ptype.size_vec2()));
+				ui.add(egui::Image::new(self.stype.texture_id(ctx), self.stype.size_vec2()));
             });
 			ui.horizontal(|ui| {
                 ui.label("Abilities: ");
+				ui.label(&self.abilities);
             });
 			ui.horizontal(|ui| {
                 ui.label("Dimensions: ");
+				ui.label(&self.dimensions);
             });
-            ui.label(format!("Input '{}'", self.species));
+			// add padding
+			ui.add(egui::Label::new(""));
+			ui.add(egui::Label::new(""));
+			ui.add(egui::Label::new(""));
+			ui.add(egui::Label::new(""));
+			ui.horizontal(|ui| {
+                ui.label("Powered by:");
+				ui.add(egui::Hyperlink::from_label_and_url("graphqlpokemon.favware.tech", "https://graphqlpokemon.favware.tech/v7"));
+			});
         });
     }
 }
