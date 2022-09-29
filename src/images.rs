@@ -9,11 +9,6 @@ async fn fetch_image(url: &str) -> Result<image::DynamicImage, Box<dyn Error>>{
 }
 
 #[tokio::main]
-pub async fn fetch_empty_image() -> Result<Vec<u8>, Box<dyn Error>>{
-	let img_bytes = reqwest::get("https://upload.wikimedia.org/wikipedia/commons/d/d2/Blank.png").await?.bytes().await?;
-	Ok(img_bytes.to_vec())
-}
-#[tokio::main]
 pub async fn fetch_image_bytes(url: &str) -> Result<Vec<u8>, Box<dyn Error>>{
 	let img_bytes = reqwest::get(url).await?.bytes().await?;
 	Ok(img_bytes.to_vec())

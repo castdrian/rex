@@ -23,3 +23,5 @@ pub fn assign_typecolor(t: &str) -> colored::ColoredString {
 		_ => t.white(),
 	}
 }
+
+pub const EMPTY_IMAGE: &str = "https://upload.wikimedia.org/wikipedia/commons/d/d2/Blank.png";

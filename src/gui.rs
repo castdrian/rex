@@ -3,7 +3,7 @@
 use eframe::egui;
 use egui_extras::RetainedImage;
 use voca_rs::*;
-use crate::{fetch, response, images::fetch_empty_image};
+use crate::{fetch, response, images::{fetch_image_bytes}, constants::EMPTY_IMAGE};
 
 pub fn main() {
 	let options = eframe::NativeOptions {
@@ -38,12 +38,12 @@ impl Default for MyApp {
 			types: "".to_owned(),
 			ptype: RetainedImage::from_image_bytes(
                 "blank.png",
-                &fetch_empty_image().unwrap(),
+                &fetch_image_bytes(EMPTY_IMAGE).unwrap(),
             )
             .unwrap(),
 			stype: RetainedImage::from_image_bytes(
 				"blank.png",
-				&fetch_empty_image().unwrap(),
+				&fetch_image_bytes(EMPTY_IMAGE).unwrap(),
 			).unwrap(),
 			abilities: "".to_owned(),
 			dimensions: "".to_owned()
