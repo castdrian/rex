@@ -31,6 +31,7 @@ struct MyApp {
 
 impl Default for MyApp {
     fn default() -> Self {
+		let bytes = fetch_image_bytes(EMPTY_IMAGE).unwrap();
         Self {
             search: "".to_owned(),
 			description: "".to_owned(),
@@ -38,12 +39,12 @@ impl Default for MyApp {
 			types: "".to_owned(),
 			ptype: RetainedImage::from_image_bytes(
                 "blank.png",
-                &fetch_image_bytes(EMPTY_IMAGE).unwrap(),
+                &bytes,
             )
             .unwrap(),
 			stype: RetainedImage::from_image_bytes(
 				"blank.png",
-				&fetch_image_bytes(EMPTY_IMAGE).unwrap(),
+				&bytes,
 			).unwrap(),
 			abilities: "".to_owned(),
 			dimensions: "".to_owned()
@@ -57,7 +58,7 @@ impl eframe::App for MyApp {
             ui.horizontal(|ui| {
 				let searchbox = ui.add(egui::TextEdit::singleline(&mut self.search)
 				.hint_text("Pokémon | 000").desired_width(425.0));
-
+				
 				if searchbox.lost_focus() && searchbox.ctx.input().key_pressed(egui::Key::Enter) {
 					if self.search.trim().is_empty() {
 						return;
