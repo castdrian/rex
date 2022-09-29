@@ -75,6 +75,7 @@ impl eframe::App for MyApp {
 						let mon = response::gui_get_numresult(response);
 
 						self.species = format!("#{} {} | {}: {} {}: {}", mon.num, case::capitalize(&mon.species, true), "♂", mon.gender.male, "♀", mon.gender.female).to_owned();
+						self.description = mon.flavor_texts.get(0).unwrap().flavor.clone();
 						self.sprite = RetainedImage::from_image_bytes(
 							"sprite.png",
 							&fetch_image_bytes(&format!("https://www.cpokemon.com/pokes/home/{}.png", mon.num)).unwrap(),
@@ -126,8 +127,8 @@ impl eframe::App for MyApp {
             });
 			ui.horizontal(|ui| {
 				ui.add(egui::Image::new(self.sprite.texture_id(ctx), egui::vec2(128.0, 128.0)));
-				ui.label(&self.description);
-            });
+				ui.add(egui::Label::new(&self.description).wrap(true));
+			});
 			// add padding
 			ui.add(egui::Label::new(""));
 			ui.add(egui::Label::new(""));
