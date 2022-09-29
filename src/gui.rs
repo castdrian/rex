@@ -7,8 +7,8 @@ use crate::{fetch, response, images::{fetch_image_bytes}, constants::EMPTY_IMAGE
 
 pub fn main() {
 	let options = eframe::NativeOptions {
-        min_window_size: Some(egui::vec2(425.0, 200.0)),
-        max_window_size: Some(egui::vec2(425.0, 200.0)),
+        min_window_size: Some(egui::vec2(425.0, 300.0)),
+        max_window_size: Some(egui::vec2(425.0, 300.0)),
         ..Default::default()
     };
     eframe::run_native(
@@ -22,7 +22,7 @@ struct MyApp {
     search: String,
 	description: String,
     species: String,
-    types: String,
+	sprite: RetainedImage,
 	ptype: RetainedImage,
 	stype: RetainedImage,
     abilities: String,
@@ -36,7 +36,11 @@ impl Default for MyApp {
             search: "".to_owned(),
 			description: "".to_owned(),
 			species: "".to_owned(),
-			types: "".to_owned(),
+			sprite: RetainedImage::from_image_bytes(
+                "blank.png",
+                &bytes,
+            )
+            .unwrap(),
 			ptype: RetainedImage::from_image_bytes(
                 "blank.png",
                 &bytes,
@@ -71,6 +75,10 @@ impl eframe::App for MyApp {
 						let mon = response::gui_get_numresult(response);
 
 						self.species = format!("#{} {} | {}: {} {}: {}", mon.num, case::capitalize(&mon.species, true), "♂", mon.gender.male, "♀", mon.gender.female).to_owned();
+						self.sprite = RetainedImage::from_image_bytes(
+							"sprite.png",
+							&fetch_image_bytes(&format!("https://www.cpokemon.com/pokes/home/{}.png", mon.num)).unwrap(),
+						).unwrap();
 						self.ptype = RetainedImage::from_image_bytes(
 							"ptype.jpg",
 							&fetch_image_bytes(&format!("https://github.com/castdrian/pkmn-screens/raw/main/data/images/icons/types/{}.jpg", case::lower_case(mon.types.get(0).unwrap()))).unwrap(),
@@ -105,7 +113,6 @@ impl eframe::App for MyApp {
             });
 			ui.horizontal(|ui| {
                 ui.label("Types: ");
-				ui.label(&self.types);
 				ui.add(egui::Image::new(self.ptype.texture_id(ctx), egui::vec2(50.0, 11.0)));
 				ui.add(egui::Image::new(self.stype.texture_id(ctx), egui::vec2(50.0, 11.0)));
             });
@@ -117,9 +124,11 @@ impl eframe::App for MyApp {
                 ui.label("Dimensions: ");
 				ui.label(&self.dimensions);
             });
+			ui.horizontal(|ui| {
+				ui.add(egui::Image::new(self.sprite.texture_id(ctx), egui::vec2(128.0, 128.0)));
+				ui.label(&self.description);
+            });
 			// add padding
-			ui.add(egui::Label::new(""));
-			ui.add(egui::Label::new(""));
 			ui.add(egui::Label::new(""));
 			ui.add(egui::Label::new(""));
 			ui.horizontal(|ui| {
