@@ -1,16 +1,21 @@
 use viuer::{Config, print};
 use std::error::Error;
 
-fn fetch_image(url: &str) -> Result<image::DynamicImage, Box<dyn Error>>{
-	let img_bytes = reqwest::blocking::get(url)?.bytes()?;
+#[tokio::main]
+async fn fetch_image(url: &str) -> Result<image::DynamicImage, Box<dyn Error>>{
+	let img_bytes = reqwest::get(url).await?.bytes().await?;
 	let image = image::load_from_memory(&img_bytes)?;
-
 	Ok(image)
 }
 
 #[tokio::main]
 pub async fn fetch_empty_image() -> Result<Vec<u8>, Box<dyn Error>>{
 	let img_bytes = reqwest::get("https://upload.wikimedia.org/wikipedia/commons/d/d2/Blank.png").await?.bytes().await?;
+	Ok(img_bytes.to_vec())
+}
+#[tokio::main]
+pub async fn fetch_image_bytes(url: &str) -> Result<Vec<u8>, Box<dyn Error>>{
+	let img_bytes = reqwest::get(url).await?.bytes().await?;
 	Ok(img_bytes.to_vec())
 }
 
