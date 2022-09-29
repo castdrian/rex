@@ -70,7 +70,21 @@ impl eframe::App for MyApp {
 						let mon = response::gui_get_numresult(response);
 
 						self.species = format!("#{} {} | {}: {} {}: {}", mon.num, case::capitalize(&mon.species, true), "♂", mon.gender.male, "♀", mon.gender.female).to_owned();
-						self.types = format!("{}{}", format!("{}", mon.types.get(0).unwrap()), if mon.types.len() > 1 { format!("/{}", mon.types.get(1).unwrap()) } else { format!("") }).to_owned();
+						self.ptype = RetainedImage::from_image_bytes(
+							"ptype.jpg",
+							&fetch_image_bytes(&format!("https://github.com/castdrian/pkmn-screens/raw/main/data/images/icons/types/{}.jpg", case::lower_case(mon.types.get(0).unwrap()))).unwrap(),
+						).unwrap();
+						if mon.types.len() > 1 {
+							self.stype = RetainedImage::from_image_bytes(
+								"stype.jpg",
+								&fetch_image_bytes(&format!("https://github.com/castdrian/pkmn-screens/raw/main/data/images/icons/types/{}.jpg", case::lower_case(mon.types.get(1).unwrap()))).unwrap(),
+							).unwrap();
+						} else {
+							self.stype = RetainedImage::from_image_bytes(
+								"blank.png",
+								&fetch_image_bytes(EMPTY_IMAGE).unwrap(),
+							).unwrap();
+						}
 						self.abilities = format!("{}{}{}", mon.abilities.first, if mon.abilities.second == None { format!("") } else { format!(" / {}", mon.abilities.second.as_ref().unwrap()) }, if mon.abilities.hidden == None { format!("") } else { format!(" | HA: {}", mon.abilities.hidden.as_ref().unwrap()) }).to_owned();
 						self.dimensions = format!("Height: {} M | Weight: {} KG", mon.height, mon.weight).to_owned();
 
@@ -91,8 +105,8 @@ impl eframe::App for MyApp {
 			ui.horizontal(|ui| {
                 ui.label("Types: ");
 				ui.label(&self.types);
-				ui.add(egui::Image::new(self.ptype.texture_id(ctx), self.ptype.size_vec2()));
-				ui.add(egui::Image::new(self.stype.texture_id(ctx), self.stype.size_vec2()));
+				ui.add(egui::Image::new(self.ptype.texture_id(ctx), egui::vec2(50.0, 11.0)));
+				ui.add(egui::Image::new(self.stype.texture_id(ctx), egui::vec2(50.0, 11.0)));
             });
 			ui.horizontal(|ui| {
                 ui.label("Abilities: ");
