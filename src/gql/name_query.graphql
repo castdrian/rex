@@ -2,19 +2,14 @@ query NameQuery($pokemon: String!) {
   getFuzzyPokemon(pokemon: $pokemon, take: 1) {
     num
     species
-    types
-    abilities {
-      first
-      second
-      hidden
+    types {
+      primary: name
+      secondary: name
     }
-    baseStats {
-      hp
-      attack
-      defense
-      specialattack
-      specialdefense
-      speed
+    abilities {
+      first { name }
+      second { name }
+      hidden { name }
     }
     gender {
       male
@@ -26,22 +21,8 @@ query NameQuery($pokemon: String!) {
       game
       flavor
     }
-    evYields {
-      hp
-      attack
-      defense
-      specialattack
-      specialdefense
-      speed
-    }
-    isEggObtainable
-    minimumHatchTime
-    maximumHatchTime
-    levellingRate
     sprite
     shinySprite
-    backSprite
-    shinyBackSprite
     smogonTier
     smogonPage
     serebiiPage

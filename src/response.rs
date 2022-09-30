@@ -40,12 +40,12 @@ pub fn cli_show_numresult(response: graphql_client::Response<fetch::num_query::R
             "{}{}",
             format!(
                 "{:\u{2009}^10}",
-                constants::assign_typecolor(mon.types.get(0).unwrap())
+                constants::assign_typecolor(mon.types.get(0).unwrap().primary.as_str())
             ),
             if mon.types.len() > 1 {
                 format!(
                     "{:\u{2009}^10}",
-                    constants::assign_typecolor(mon.types.get(1).unwrap())
+                    constants::assign_typecolor(mon.types.get(1).unwrap().secondary.as_str())
                 )
             } else {
                 format!("")
@@ -56,16 +56,16 @@ pub fn cli_show_numresult(response: graphql_client::Response<fetch::num_query::R
         TableCell::new("Abilities:"),
         TableCell::new(format!(
             "{}{}{}",
-            mon.abilities.first,
-            if mon.abilities.second == None {
+            mon.abilities.first.name,
+            if mon.abilities.second.is_none() {
                 format!("")
             } else {
-                format!(" / {}", mon.abilities.second.as_ref().unwrap())
+                format!(" / {}", mon.abilities.second.as_ref().unwrap().name)
             },
-            if mon.abilities.hidden == None {
+            if mon.abilities.hidden.is_none() {
                 format!("")
             } else {
-                format!(" | HA: {}", mon.abilities.hidden.as_ref().unwrap())
+                format!(" | HA: {}", mon.abilities.hidden.as_ref().unwrap().name)
             }
         )),
     ]));
@@ -114,12 +114,12 @@ pub fn cli_show_nameresult(response: graphql_client::Response<fetch::name_query:
             "{}{}",
             format!(
                 "{:\u{2009}^10}",
-                constants::assign_typecolor(mon.types.get(0).unwrap())
+                constants::assign_typecolor(mon.types.get(0).unwrap().primary.as_str())
             ),
             if mon.types.len() > 1 {
                 format!(
                     "{:\u{2009}^10}",
-                    constants::assign_typecolor(mon.types.get(1).unwrap())
+                    constants::assign_typecolor(mon.types.get(1).unwrap().secondary.as_str())
                 )
             } else {
                 format!("")
@@ -130,16 +130,16 @@ pub fn cli_show_nameresult(response: graphql_client::Response<fetch::name_query:
         TableCell::new("Abilities:"),
         TableCell::new(format!(
             "{}{}{}",
-            mon.abilities.first,
-            if mon.abilities.second == None {
+            mon.abilities.first.name,
+            if mon.abilities.second.is_none() {
                 format!("")
             } else {
-                format!(" / {}", mon.abilities.second.as_ref().unwrap())
+                format!(" / {}", mon.abilities.second.as_ref().unwrap().name)
             },
-            if mon.abilities.hidden == None {
+            if mon.abilities.hidden.is_none() {
                 format!("")
             } else {
-                format!(" | HA: {}", mon.abilities.hidden.as_ref().unwrap())
+                format!(" | HA: {}", mon.abilities.hidden.as_ref().unwrap().name)
             }
         )),
     ]));

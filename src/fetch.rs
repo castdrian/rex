@@ -27,7 +27,7 @@ pub async fn fetch_dex_num(
 
     let client = reqwest::Client::new();
     let res = client
-        .post("https://graphqlpokemon.favware.tech/")
+        .post("https://graphqlpokemon.favware.tech/v7")
         .json(&request_body)
         .send()
         .await?;
@@ -43,7 +43,7 @@ pub async fn fetch_dex_name(
 
     let client = reqwest::Client::new();
     let res = client
-        .post("https://graphqlpokemon.favware.tech/")
+        .post("https://graphqlpokemon.favware.tech/v7")
         .json(&request_body)
         .send()
         .await?;

@@ -96,12 +96,12 @@ impl eframe::App for MyApp {
 						).unwrap();
 						self.ptype = RetainedImage::from_image_bytes(
 							"ptype.jpg",
-							&fetch_image_bytes(&format!("https://github.com/castdrian/pkmn-screens/raw/main/data/images/icons/types/{}.jpg", case::lower_case(mon.types.get(0).unwrap()))).unwrap(),
+							&fetch_image_bytes(&format!("https://github.com/castdrian/pkmn-screens/raw/main/data/images/icons/types/{}.jpg", case::lower_case(mon.types.get(0).unwrap().primary.as_str()))).unwrap(),
 						).unwrap();
 						if mon.types.len() > 1 {
 							self.stype = RetainedImage::from_image_bytes(
 								"stype.jpg",
-								&fetch_image_bytes(&format!("https://github.com/castdrian/pkmn-screens/raw/main/data/images/icons/types/{}.jpg", case::lower_case(mon.types.get(1).unwrap()))).unwrap(),
+								&fetch_image_bytes(&format!("https://github.com/castdrian/pkmn-screens/raw/main/data/images/icons/types/{}.jpg", case::lower_case(mon.types.get(1).unwrap().secondary.as_str()))).unwrap(),
 							).unwrap();
 						} else {
 							self.stype = RetainedImage::from_image_bytes(
@@ -109,7 +109,7 @@ impl eframe::App for MyApp {
 								&fetch_image_bytes(EMPTY_IMAGE).unwrap(),
 							).unwrap();
 						}
-						self.abilities = format!("{}{}{}", mon.abilities.first, if mon.abilities.second == None { format!("") } else { format!(" / {}", mon.abilities.second.as_ref().unwrap()) }, if mon.abilities.hidden == None { format!("") } else { format!(" | HA: {}", mon.abilities.hidden.as_ref().unwrap()) }).to_owned();
+						self.abilities = format!("{}{}{}", mon.abilities.first.name, if mon.abilities.second.is_none() { format!("") } else { format!(" / {}", mon.abilities.second.as_ref().unwrap().name) }, if mon.abilities.hidden.is_none() { format!("") } else { format!(" | HA: {}", mon.abilities.hidden.as_ref().unwrap().name) }).to_owned();
 						self.dimensions = format!("Height: {} M | Weight: {} KG", mon.height, mon.weight).to_owned();
 						self.enabled = true;
 						self.shiny = false;
@@ -129,12 +129,12 @@ impl eframe::App for MyApp {
 						).unwrap();
 						self.ptype = RetainedImage::from_image_bytes(
 							"ptype.jpg",
-							&fetch_image_bytes(&format!("https://github.com/castdrian/pkmn-screens/raw/main/data/images/icons/types/{}.jpg", case::lower_case(mon.types.get(0).unwrap()))).unwrap(),
+							&fetch_image_bytes(&format!("https://github.com/castdrian/pkmn-screens/raw/main/data/images/icons/types/{}.jpg", case::lower_case(mon.types.get(0).unwrap().primary.as_str()))).unwrap(),
 						).unwrap();
 						if mon.types.len() > 1 {
 							self.stype = RetainedImage::from_image_bytes(
 								"stype.jpg",
-								&fetch_image_bytes(&format!("https://github.com/castdrian/pkmn-screens/raw/main/data/images/icons/types/{}.jpg", case::lower_case(mon.types.get(1).unwrap()))).unwrap(),
+								&fetch_image_bytes(&format!("https://github.com/castdrian/pkmn-screens/raw/main/data/images/icons/types/{}.jpg", case::lower_case(mon.types.get(1).unwrap().secondary.as_str()))).unwrap(),
 							).unwrap();
 						} else {
 							self.stype = RetainedImage::from_image_bytes(
@@ -142,7 +142,7 @@ impl eframe::App for MyApp {
 								&fetch_image_bytes(EMPTY_IMAGE).unwrap(),
 							).unwrap();
 						}
-						self.abilities = format!("{}{}{}", mon.abilities.first, if mon.abilities.second == None { format!("") } else { format!(" / {}", mon.abilities.second.as_ref().unwrap()) }, if mon.abilities.hidden == None { format!("") } else { format!(" | HA: {}", mon.abilities.hidden.as_ref().unwrap()) }).to_owned();
+						self.abilities = format!("{}{}{}", mon.abilities.first.name, if mon.abilities.second.is_none() { format!("") } else { format!(" / {}", mon.abilities.second.as_ref().unwrap().name) }, if mon.abilities.hidden.is_none() { format!("") } else { format!(" | HA: {}", mon.abilities.hidden.as_ref().unwrap().name) }).to_owned();
 						self.dimensions = format!("Height: {} M | Weight: {} KG", mon.height, mon.weight).to_owned();
 						self.enabled = true;
 						self.shiny = false;
