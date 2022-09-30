@@ -6,9 +6,27 @@ use voca_rs::*;
 use crate::{fetch, response, images::{fetch_image_bytes}, constants::EMPTY_IMAGE};
 
 pub fn main() {
+	fn load_icon(path: &str) -> eframe::IconData {
+		let (icon_rgba, icon_width, icon_height) = {
+			let image = image::open(path)
+				.expect("Failed to open icon path")
+				.into_rgba8();
+			let (width, height) = image.dimensions();
+			let rgba = image.into_raw();
+			(rgba, width, height)
+		};
+	
+		eframe::IconData {
+			rgba: icon_rgba,
+			width: icon_width,
+			height: icon_height,
+		}
+	}
+
 	let options = eframe::NativeOptions {
         min_window_size: Some(egui::vec2(425.0, 290.0)),
         max_window_size: Some(egui::vec2(425.0, 290.0)),
+		icon_data: Some(load_icon("./src/assets/rex.png")),
         ..Default::default()
     };
 	
