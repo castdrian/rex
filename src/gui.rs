@@ -11,6 +11,7 @@ pub fn main() {
         max_window_size: Some(egui::vec2(425.0, 290.0)),
         ..Default::default()
     };
+	
     eframe::run_native(
         "Rex - The Rust based PokéDex",
         options,
@@ -139,6 +140,11 @@ impl eframe::App for MyApp {
 						self.sprite.texture_id(ctx),
 						egui::vec2(128.0, 128.0),
 					));
+
+					if button.enabled() && button.hovered() {
+						ctx.output().cursor_icon = egui::CursorIcon::PointingHand;
+					}
+
 					if button.clicked() {
 						if self.shiny {
 							self.sprite = RetainedImage::from_image_bytes(
@@ -157,7 +163,6 @@ impl eframe::App for MyApp {
 				});
 				ui.add(egui::Label::new(&self.description).wrap(true));
 			});
-			// add padding
 			ui.add(egui::Label::new(""));
 			ui.horizontal(|ui| {
                 ui.label("Powered by:");
