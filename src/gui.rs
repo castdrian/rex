@@ -7,8 +7,8 @@ use crate::{fetch, response, images::{fetch_image_bytes}, constants::EMPTY_IMAGE
 
 pub fn main() {
 	let options = eframe::NativeOptions {
-        min_window_size: Some(egui::vec2(425.0, 300.0)),
-        max_window_size: Some(egui::vec2(425.0, 300.0)),
+        min_window_size: Some(egui::vec2(425.0, 290.0)),
+        max_window_size: Some(egui::vec2(425.0, 290.0)),
         ..Default::default()
     };
     eframe::run_native(
@@ -26,7 +26,10 @@ struct MyApp {
 	ptype: RetainedImage,
 	stype: RetainedImage,
     abilities: String,
-	dimensions: String
+	dimensions: String,
+	enabled: bool,
+	shiny: bool,
+	num: i64
 }
 
 impl Default for MyApp {
@@ -51,7 +54,10 @@ impl Default for MyApp {
 				&bytes,
 			).unwrap(),
 			abilities: "".to_owned(),
-			dimensions: "".to_owned()
+			dimensions: "".to_owned(),
+			enabled: false,
+			shiny: false,
+			num: 0
         }
     }
 }
@@ -97,7 +103,9 @@ impl eframe::App for MyApp {
 						}
 						self.abilities = format!("{}{}{}", mon.abilities.first, if mon.abilities.second == None { format!("") } else { format!(" / {}", mon.abilities.second.as_ref().unwrap()) }, if mon.abilities.hidden == None { format!("") } else { format!(" | HA: {}", mon.abilities.hidden.as_ref().unwrap()) }).to_owned();
 						self.dimensions = format!("Height: {} M | Weight: {} KG", mon.height, mon.weight).to_owned();
-
+						self.enabled = true;
+						self.shiny = false;
+						self.num = mon.num;
 					} else {
 						let query = fetch::name_query::Variables{
 							pokemon: String::from(self.search.trim())
@@ -126,11 +134,30 @@ impl eframe::App for MyApp {
 				ui.label(&self.dimensions);
             });
 			ui.horizontal(|ui| {
-				ui.add(egui::Image::new(self.sprite.texture_id(ctx), egui::vec2(128.0, 128.0)));
+				ui.add_enabled_ui(self.enabled, |ui| {
+					let button = ui.add(egui::ImageButton::new(
+						self.sprite.texture_id(ctx),
+						egui::vec2(128.0, 128.0),
+					));
+					if button.clicked() {
+						if self.shiny {
+							self.sprite = RetainedImage::from_image_bytes(
+								"sprite.png",
+								&fetch_image_bytes(&format!("https://www.cpokemon.com/pokes/home/{}.png", self.num)).unwrap(),
+							).unwrap();
+							self.shiny = false;
+						} else {
+							self.sprite = RetainedImage::from_image_bytes(
+								"sprite.png",
+								&fetch_image_bytes(&format!("https://www.cpokemon.com/pokes/home/shiny/{}.png", self.num)).unwrap(),
+							).unwrap();
+							self.shiny = true;
+						}
+					}
+				});
 				ui.add(egui::Label::new(&self.description).wrap(true));
 			});
 			// add padding
-			ui.add(egui::Label::new(""));
 			ui.add(egui::Label::new(""));
 			ui.horizontal(|ui| {
                 ui.label("Powered by:");
