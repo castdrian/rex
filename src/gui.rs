@@ -113,6 +113,33 @@ impl eframe::App for MyApp {
 						};
 						let response = fetch::fetch_dex_name(query).expect("Query unsuccessful!");
 						let mon = response::gui_get_nameresult(response);
+
+						self.species = format!("#{} {} | {}: {} {}: {}", mon.num, case::capitalize(&mon.species, true), "♂", mon.gender.male, "♀", mon.gender.female).to_owned();
+						self.description = mon.flavor_texts.get(0).unwrap().flavor.clone();
+						self.sprite = RetainedImage::from_image_bytes(
+							"sprite.png",
+							&fetch_image_bytes(&format!("https://www.cpokemon.com/pokes/home/{}.png", mon.num)).unwrap(),
+						).unwrap();
+						self.ptype = RetainedImage::from_image_bytes(
+							"ptype.jpg",
+							&fetch_image_bytes(&format!("https://github.com/castdrian/pkmn-screens/raw/main/data/images/icons/types/{}.jpg", case::lower_case(mon.types.get(0).unwrap()))).unwrap(),
+						).unwrap();
+						if mon.types.len() > 1 {
+							self.stype = RetainedImage::from_image_bytes(
+								"stype.jpg",
+								&fetch_image_bytes(&format!("https://github.com/castdrian/pkmn-screens/raw/main/data/images/icons/types/{}.jpg", case::lower_case(mon.types.get(1).unwrap()))).unwrap(),
+							).unwrap();
+						} else {
+							self.stype = RetainedImage::from_image_bytes(
+								"blank.png",
+								&fetch_image_bytes(EMPTY_IMAGE).unwrap(),
+							).unwrap();
+						}
+						self.abilities = format!("{}{}{}", mon.abilities.first, if mon.abilities.second == None { format!("") } else { format!(" / {}", mon.abilities.second.as_ref().unwrap()) }, if mon.abilities.hidden == None { format!("") } else { format!(" | HA: {}", mon.abilities.hidden.as_ref().unwrap()) }).to_owned();
+						self.dimensions = format!("Height: {} M | Weight: {} KG", mon.height, mon.weight).to_owned();
+						self.enabled = true;
+						self.shiny = false;
+						self.num = mon.num;
 					}
 					self.search = "".to_owned();
 				}
