@@ -8,10 +8,17 @@ async fn fetch_image(url: &str) -> Result<image::DynamicImage, Box<dyn Error>>{
 	Ok(image)
 }
 
-#[tokio::main]
-pub async fn fetch_image_bytes(url: &str) -> Result<Vec<u8>, Box<dyn Error>>{
-	let img_bytes = reqwest::get(url).await?.bytes().await?;
-	Ok(img_bytes.to_vec())
+pub fn fetch_image_bytes(url: &str) -> Result<Vec<u8>, Box<dyn Error>>{
+    let result = tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .unwrap()
+        .block_on(async {
+            let img_bytes = reqwest::get(url).await?.bytes().await?;
+            Ok(img_bytes.to_vec())
+        });
+
+    result
 }
 
 pub fn show_sprite(sprite: &str, width: Option<u32>, height: Option<u32>, x: u16, y: i16) {
