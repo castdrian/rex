@@ -1,9 +1,9 @@
 mod backend;
-mod fetch;
-mod response;
 mod constants;
-mod images;
+mod fetch;
 mod gui;
+mod images;
+mod response;
 
 fn main() {
     backend::main();
