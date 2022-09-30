@@ -2,7 +2,7 @@
 
 #### GUI Mode
 
-![](https://cdn.adriancastro.dev/cmCXhWc.png)
+![](https://cdn.adriancastro.dev/XsA0ulm.png)
 
 #### CLI Mode
 ```
