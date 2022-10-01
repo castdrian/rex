@@ -61,7 +61,7 @@ fn main() {
     .expect("failed to start eframe");
 }
 
-struct MyApp {
+pub struct MyApp {
     search: String,
     description: String,
     species: String,
