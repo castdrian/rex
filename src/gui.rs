@@ -5,6 +5,8 @@ use eframe::egui;
 use egui_extras::RetainedImage;
 use voca_rs::*;
 
+// When compiling natively:
+#[cfg(not(target_arch = "wasm32"))]
 pub fn main() {
     fn load_icon(path: &str) -> eframe::IconData {
         let (icon_rgba, icon_width, icon_height) = {
@@ -35,6 +37,28 @@ pub fn main() {
         options,
         Box::new(|_cc| Box::new(MyApp::default())),
     );
+}
+
+// when compiling to web using trunk.
+#[cfg(target_arch = "wasm32")]
+fn main() {
+    // Make sure panics are logged using `console.error`.
+    console_error_panic_hook::set_once();
+
+    // Redirect tracing to console.log and friends:
+    tracing_wasm::set_as_global_default();
+
+    let web_options = eframe::WebOptions {
+        min_window_size: Some(egui::vec2(425.0, 290.0)),
+        max_window_size: Some(egui::vec2(425.0, 290.0)),
+        ..Default::default()
+    };
+    eframe::start_web(
+        "rex_web", // hardcode it
+        web_options,
+        Box::new(|_cc| Box::new(MyApp::default())),
+    )
+    .expect("failed to start eframe");
 }
 
 struct MyApp {

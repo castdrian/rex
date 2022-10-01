@@ -1,0 +1,17 @@
+{
+	"name": "Rex - The Rust based PokéDex",
+	"short_name": "rex",
+	"icons": [
+	  {
+		"src": "./rex.png",
+		"sizes": "128x128",
+		"type": "image/png"
+	  }
+	],
+	"lang": "en-US",
+	"id": "/index.html",
+	"start_url": "./index.html",
+	"display": "standalone",
+	"background_color": "white",
+	"theme_color": "white"
+  }

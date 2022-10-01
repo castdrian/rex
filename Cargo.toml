@@ -2,8 +2,18 @@
 name = "rex"
 version = "0.1.0"
 edition = "2018"
+authors = ["Adrian Castro"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+# native:
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tracing-subscriber = "0.3"
+
+# web:
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+console_error_panic_hook = "0.1.6"
+tracing-wasm = "0.2"
 
 [dependencies]
 graphql_client = "0.11.0"
