@@ -1,24 +1,37 @@
 use std::error::Error;
+use poll_promise::Promise;
 use viuer::{print, Config};
 
-#[tokio::main]
-async fn fetch_image(url: &str) -> Result<image::DynamicImage, Box<dyn Error>> {
-    let img_bytes = reqwest::get(url).await?.bytes().await?;
-    let image = image::load_from_memory(&img_bytes)?;
-    Ok(image)
+fn fetch_image(url: &str) -> Result<image::DynamicImage, Box<dyn Error>> {
+	let mut promise: Option<Promise<image::DynamicImage>> = None;
+
+	let result = promise.get_or_insert_with(|| {
+		let (sender, promise) = Promise::new();
+		let request = ehttp::Request::get(url);
+		ehttp::fetch(request, move |response| {
+			let image = image::load_from_memory(&response.unwrap().bytes).unwrap();
+			sender.send(image);
+		});
+		promise
+	});
+	
+	Ok(result.block_until_ready().clone())
 }
 
 pub fn fetch_image_bytes(url: &str) -> Result<Vec<u8>, Box<dyn Error>> {
-    let result = tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .unwrap()
-        .block_on(async {
-            let img_bytes = reqwest::get(url).await?.bytes().await?;
-            Ok(img_bytes.to_vec())
-        });
+	let mut promise: Option<Promise<Vec<u8>>> = None;
 
-    result
+	let result = promise.get_or_insert_with(|| {
+		let (sender, promise) = Promise::new();
+		let request = ehttp::Request::get(url);
+		ehttp::fetch(request, move |response| {
+			let bytes = response.unwrap().bytes.to_vec();
+			sender.send(bytes);
+		});
+		promise
+	});
+	
+	Ok(result.block_until_ready().clone())
 }
 
 pub fn show_sprite(sprite: &str, width: Option<u32>, height: Option<u32>, x: u16, y: i16) {
