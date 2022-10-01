@@ -43,18 +43,14 @@ pub fn main() {
 
 // when compiling to web using trunk.
 #[cfg(target_arch = "wasm32")]
-fn main() {
+pub fn main() {
     // Make sure panics are logged using `console.error`.
     console_error_panic_hook::set_once();
 
     // Redirect tracing to console.log and friends:
     tracing_wasm::set_as_global_default();
 
-    let web_options = eframe::WebOptions {
-        min_window_size: Some(egui::vec2(425.0, 290.0)),
-        max_window_size: Some(egui::vec2(425.0, 290.0)),
-        ..Default::default()
-    };
+    let web_options = eframe::WebOptions::default();
     eframe::start_web(
         "rex_web", // hardcode it
         web_options,
