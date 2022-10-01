@@ -1,9 +1,11 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
-use crate::{constants::EMPTY_IMAGE, fetch, images::fetch_image_bytes, response};
+use crate::{fetch, images::fetch_image_bytes, response};
 use eframe::egui;
 use egui_extras::RetainedImage;
 use voca_rs::*;
+
+const EMPTY_IMAGE: &str = "https://upload.wikimedia.org/wikipedia/commons/d/d2/Blank.png";
 
 // When compiling natively:
 #[cfg(not(target_arch = "wasm32"))]
