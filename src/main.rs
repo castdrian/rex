@@ -25,8 +25,7 @@ pub fn main() {
     }
 
     let options = eframe::NativeOptions {
-        min_window_size: Some(egui::vec2(425.0, 290.0)),
-        max_window_size: Some(egui::vec2(425.0, 290.0)),
+        initial_window_size: Some([425.0, 290.0].into()),
         icon_data: Some(load_icon("././assets/rex.png")),
         ..Default::default()
     };
