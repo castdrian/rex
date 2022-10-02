@@ -4,7 +4,7 @@
 // When compiling natively:
 #[cfg(not(target_arch = "wasm32"))]
 pub fn main() {
-	// Log to stdout (if you run with `RUST_LOG=debug`).
+    // Log to stdout (if you run with `RUST_LOG=debug`).
     tracing_subscriber::fmt::init();
 
     fn load_icon(path: &str) -> eframe::IconData {
@@ -53,8 +53,8 @@ pub fn init_wasm_hooks() {
 // when compiling to web using trunk.
 #[cfg(target_arch = "wasm32")]
 pub fn main() {
-	init_wasm_hooks();
-	
+    init_wasm_hooks();
+
     let web_options = eframe::WebOptions::default();
     eframe::start_web(
         "rex_web",

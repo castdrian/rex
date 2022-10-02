@@ -1,8 +1,8 @@
 use crate::{fetch, images::fetch_image_bytes, response};
 use eframe::egui;
 use egui_extras::RetainedImage;
-use voca_rs::*;
 use poll_promise::Promise;
+use voca_rs::*;
 
 struct Resource {
     /// HTTP response
@@ -19,10 +19,7 @@ impl Resource {
         } else {
             None
         };
-        Self {
-            response,
-            image,
-        }
+        Self { response, image }
     }
 }
 
@@ -39,8 +36,8 @@ pub struct MyApp {
     enabled: bool,
     shiny: bool,
     num: i64,
-	#[cfg_attr(feature = "serde", serde(skip))]
-    promise: Option<Promise<ehttp::Result<Resource>>>
+    #[cfg_attr(feature = "serde", serde(skip))]
+    promise: Option<Promise<ehttp::Result<Resource>>>,
 }
 
 impl Default for MyApp {
@@ -49,15 +46,27 @@ impl Default for MyApp {
             search: "".to_owned(),
             description: "".to_owned(),
             species: "".to_owned(),
-            sprite: RetainedImage::from_image_bytes("empty.png", include_bytes!("../assets/empty.png")).unwrap(),
-            ptype: RetainedImage::from_image_bytes("empty.png", include_bytes!("../assets/empty.png")).unwrap(),
-            stype: RetainedImage::from_image_bytes("empty.png", include_bytes!("../assets/empty.png")).unwrap(),
+            sprite: RetainedImage::from_image_bytes(
+                "empty.png",
+                include_bytes!("../assets/empty.png"),
+            )
+            .unwrap(),
+            ptype: RetainedImage::from_image_bytes(
+                "empty.png",
+                include_bytes!("../assets/empty.png"),
+            )
+            .unwrap(),
+            stype: RetainedImage::from_image_bytes(
+                "empty.png",
+                include_bytes!("../assets/empty.png"),
+            )
+            .unwrap(),
             abilities: "".to_owned(),
             dimensions: "".to_owned(),
             enabled: false,
             shiny: false,
             num: 0,
-			promise: Default::default(),
+            promise: Default::default(),
         }
     }
 }
