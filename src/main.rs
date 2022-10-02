@@ -37,11 +37,23 @@ pub fn main() {
     );
 }
 
+#[cfg(target_arch = "wasm32")]
+use eframe::wasm_bindgen::{self, prelude::*};
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn init_wasm_hooks() {
+    // Make sure panics are logged using `console.error`.
+    console_error_panic_hook::set_once();
+
+    // Redirect tracing to console.log and friends:
+    tracing_wasm::set_as_global_default();
+}
+
 // when compiling to web using trunk.
 #[cfg(target_arch = "wasm32")]
 pub fn main() {
-	// Make sure panics are logged using `console.error`.
-    console_error_panic_hook::set_once();
+	init_wasm_hooks();
 	
     let web_options = eframe::WebOptions::default();
     eframe::start_web(

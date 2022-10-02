@@ -1,5 +1,6 @@
 use poll_promise::Promise;
 use std::error::Error;
+use egui_extras::RetainedImage;
 
 pub fn fetch_image_bytes(url: &str) -> Result<Vec<u8>, Box<dyn Error>> {
     let mut promise: Option<Promise<Vec<u8>>> = None;

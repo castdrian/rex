@@ -1860,6 +1860,7 @@ dependencies = [
  "tracing-subscriber",
  "tracing-wasm",
  "voca_rs",
+ "wasm-bindgen",
 ]
 
 [[package]]

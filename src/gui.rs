@@ -2,9 +2,31 @@ use crate::{fetch, images::fetch_image_bytes, response};
 use eframe::egui;
 use egui_extras::RetainedImage;
 use voca_rs::*;
+use poll_promise::Promise;
 
-const EMPTY_IMAGE: &str = "https://upload.wikimedia.org/wikipedia/commons/d/d2/Blank.png";
+struct Resource {
+    /// HTTP response
+    response: ehttp::Response,
+    /// If set, the response was an image.
+    image: Option<RetainedImage>,
+}
 
+impl Resource {
+    fn from_response(ctx: &egui::Context, response: ehttp::Response) -> Self {
+        let content_type = response.content_type().unwrap_or_default();
+        let image = if content_type.starts_with("image/") {
+            RetainedImage::from_image_bytes(&response.url, &response.bytes).ok()
+        } else {
+            None
+        };
+        Self {
+            response,
+            image,
+        }
+    }
+}
+
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct MyApp {
     search: String,
     description: String,
@@ -17,23 +39,25 @@ pub struct MyApp {
     enabled: bool,
     shiny: bool,
     num: i64,
+	#[cfg_attr(feature = "serde", serde(skip))]
+    promise: Option<Promise<ehttp::Result<Resource>>>
 }
 
 impl Default for MyApp {
     fn default() -> Self {
-        let bytes = fetch_image_bytes(EMPTY_IMAGE).unwrap();
         Self {
             search: "".to_owned(),
             description: "".to_owned(),
             species: "".to_owned(),
-            sprite: RetainedImage::from_image_bytes("blank.png", &bytes).unwrap(),
-            ptype: RetainedImage::from_image_bytes("blank.png", &bytes).unwrap(),
-            stype: RetainedImage::from_image_bytes("blank.png", &bytes).unwrap(),
+            sprite: RetainedImage::from_image_bytes("empty.png", include_bytes!("../assets/empty.png")).unwrap(),
+            ptype: RetainedImage::from_image_bytes("empty.png", include_bytes!("../assets/empty.png")).unwrap(),
+            stype: RetainedImage::from_image_bytes("empty.png", include_bytes!("../assets/empty.png")).unwrap(),
             abilities: "".to_owned(),
             dimensions: "".to_owned(),
             enabled: false,
             shiny: false,
             num: 0,
+			promise: Default::default(),
         }
     }
 }
@@ -41,9 +65,37 @@ impl Default for MyApp {
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
+			let empty_image = RetainedImage::from_image_bytes("empty.png", include_bytes!("../assets/empty.png")).unwrap();
+
             ui.horizontal(|ui| {
 				let searchbox = ui.add(egui::TextEdit::singleline(&mut self.search)
 				.hint_text("Pokémon | 000").desired_width(425.0));
+
+				/* let ctx = ctx.clone();
+                let (sender, promise) = Promise::new();
+                let request = ehttp::Request::get(&EMPTY_IMAGE);
+                ehttp::fetch(request, move |response| {
+                    ctx.request_repaint(); // wake up UI thread
+                    let resource = response.map(|response| Resource::from_response(&ctx, response));
+                    sender.send(resource);
+                });
+                self.promise = Some(promise);
+
+				if let Some(promise) = &self.promise {
+					if let Some(result) = promise.ready() {
+						match result {
+							Ok(resource) => {
+								ui_resource(ui, resource);
+							}
+							Err(error) => {
+								// This should only happen if the fetch API isn't available or something similar.
+								println!("Error: {}", error);
+							}
+						}
+					} else {
+						println!("Loading...");
+					}
+				} */
 
 				if searchbox.lost_focus() && searchbox.ctx.input().key_pressed(egui::Key::Enter) {
 					if self.search.trim().is_empty() {
@@ -72,10 +124,7 @@ impl eframe::App for MyApp {
 								&fetch_image_bytes(&format!("https://github.com/castdrian/pkmn-screens/raw/main/data/images/icons/types/{}.jpg", case::lower_case(mon.types.get(1).unwrap().secondary.as_str()))).unwrap(),
 							).unwrap();
 						} else {
-							self.stype = RetainedImage::from_image_bytes(
-								"blank.png",
-								&fetch_image_bytes(EMPTY_IMAGE).unwrap(),
-							).unwrap();
+							self.stype = empty_image;
 						}
 						self.abilities = format!("{}{}{}", mon.abilities.first.name, if mon.abilities.second.is_none() { format!("") } else { format!(" / {}", mon.abilities.second.as_ref().unwrap().name) }, if mon.abilities.hidden.is_none() { format!("") } else { format!(" | HA: {}", mon.abilities.hidden.as_ref().unwrap().name) }).to_owned();
 						self.dimensions = format!("Height: {} M | Weight: {} KG", mon.height, mon.weight).to_owned();
@@ -105,10 +154,7 @@ impl eframe::App for MyApp {
 								&fetch_image_bytes(&format!("https://github.com/castdrian/pkmn-screens/raw/main/data/images/icons/types/{}.jpg", case::lower_case(mon.types.get(1).unwrap().secondary.as_str()))).unwrap(),
 							).unwrap();
 						} else {
-							self.stype = RetainedImage::from_image_bytes(
-								"blank.png",
-								&fetch_image_bytes(EMPTY_IMAGE).unwrap(),
-							).unwrap();
+							self.stype = empty_image;
 						}
 						self.abilities = format!("{}{}{}", mon.abilities.first.name, if mon.abilities.second.is_none() { format!("") } else { format!(" / {}", mon.abilities.second.as_ref().unwrap().name) }, if mon.abilities.hidden.is_none() { format!("") } else { format!(" | HA: {}", mon.abilities.hidden.as_ref().unwrap().name) }).to_owned();
 						self.dimensions = format!("Height: {} M | Weight: {} KG", mon.height, mon.weight).to_owned();
