@@ -224,6 +224,8 @@ impl eframe::App for MyApp {
 			ui.horizontal(|ui| {
                 ui.label("Powered by:");
 				ui.add(egui::Hyperlink::from_label_and_url("graphqlpokemon.favware.tech", "https://graphqlpokemon.favware.tech/v7"));
+				ui.label("-");
+				ui.add(egui::Hyperlink::from_label_and_url("⭐ on GitHub!", "https://github.com/castdrian/rex"));
 			});
         });
     }
