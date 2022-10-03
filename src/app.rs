@@ -196,7 +196,7 @@ impl eframe::App for MyApp {
 
 									self.species = format!("#{} {} | {}: {} {}: {}", mon.num, case::capitalize(&mon.species, true), "♂", mon.gender.male, "♀", mon.gender.female).to_owned();
 									self.description = mon.flavor_texts.get(0).unwrap().flavor.clone();
-									self.ptype = RetainedImage::from_image_bytes(
+									/* self.ptype = RetainedImage::from_image_bytes(
 										"ptype.jpg",
 										std::fs::read(format!("./assets/{}.jpg", case::lower_case(mon.types.get(0).unwrap().primary.as_str())).to_string()).unwrap().as_slice(),
 									).unwrap();
@@ -207,7 +207,7 @@ impl eframe::App for MyApp {
 										).unwrap();
 									} else {
 										self.stype = RetainedImage::from_image_bytes("empty.png", include_bytes!("../assets/empty.png")).unwrap();
-									}
+									} */
 									self.abilities = format!("{}{}{}", mon.abilities.first.name, if mon.abilities.second.is_none() { format!("") } else { format!(" / {}", mon.abilities.second.as_ref().unwrap().name) }, if mon.abilities.hidden.is_none() { format!("") } else { format!(" | HA: {}", mon.abilities.hidden.as_ref().unwrap().name) }).to_owned();
 									self.dimensions = format!("Height: {} M | Weight: {} KG", mon.height, mon.weight).to_owned();
 									self.enabled = true;
