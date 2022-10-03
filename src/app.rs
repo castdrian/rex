@@ -142,8 +142,44 @@ impl eframe::App for MyApp {
 				}
 
 				if self.finished_fetching == false {
-					let download: &WebRequest = &self.download.lock().unwrap();
-						match download {
+					let num_fetch: &WebRequest = &self.download.lock().unwrap();
+
+					if let WebRequest::InProgress = num_fetch {
+						self.loading = true;
+					}
+					if let WebRequest::Done(response) = num_fetch {
+						let body = serde_json::from_slice::<graphql_client::Response<num_query::ResponseData>>(
+							&response.as_ref().unwrap().bytes,
+						)
+						.unwrap();
+						let mon = body.data.unwrap().get_pokemon_by_dex_number;
+						println!("{:?}", response.as_ref().unwrap().status);
+						println!("{:?}", mon);
+
+						self.loading = false;
+						self.finished_fetching = true;
+
+						self.species = format!("#{} {} | {}: {} {}: {}", mon.num, case::capitalize(&mon.species, true), "♂", mon.gender.male, "♀", mon.gender.female).to_owned();
+						self.description = mon.flavor_texts.get(0).unwrap().flavor.clone();
+						/* self.ptype = RetainedImage::from_image_bytes(
+							"ptype.jpg",
+							std::fs::read(format!("./assets/{}.jpg", case::lower_case(mon.types.get(0).unwrap().primary.as_str())).to_string()).unwrap().as_slice(),
+						).unwrap();
+						if mon.types.len() > 1 {
+							self.stype = RetainedImage::from_image_bytes(
+								"stype.jpg",
+								std::fs::read(format!("./assets/{}.jpg", case::lower_case(mon.types.get(1).unwrap().primary.as_str())).to_string()).unwrap().as_slice(),
+							).unwrap();
+						} else {
+							self.stype = RetainedImage::from_image_bytes("empty.png", include_bytes!("../assets/empty.png")).unwrap();
+						} */
+						self.abilities = format!("{}{}{}", mon.abilities.first.name, if mon.abilities.second.is_none() { format!("") } else { format!(" / {}", mon.abilities.second.as_ref().unwrap().name) }, if mon.abilities.hidden.is_none() { format!("") } else { format!(" | HA: {}", mon.abilities.hidden.as_ref().unwrap().name) }).to_owned();
+						self.dimensions = format!("Height: {} M | Weight: {} KG", mon.height, mon.weight).to_owned();
+						self.enabled = true;
+						self.shiny = false;
+						self.num = mon.num;
+					}
+						/* match num_fetch {
 							WebRequest::None => {}
 							WebRequest::InProgress => {
 								self.loading = true;
@@ -185,7 +221,7 @@ impl eframe::App for MyApp {
 									self.num = mon.num;
 								}
 							},
-						}
+						} */
 				}
             });
 			ui.horizontal(|ui| {
