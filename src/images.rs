@@ -1,4 +1,3 @@
-use egui_extras::RetainedImage;
 use poll_promise::Promise;
 use std::error::Error;
 

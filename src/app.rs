@@ -1,29 +1,24 @@
 use crate::{fetch, images::fetch_image_bytes, response};
 use eframe::egui;
 use egui_extras::RetainedImage;
-use poll_promise::Promise;
+use graphql_client::GraphQLQuery;
+use std::sync::{Arc, Mutex};
 use voca_rs::*;
 
-struct Resource {
-    /// HTTP response
-    response: ehttp::Response,
-    /// If set, the response was an image.
-    image: Option<RetainedImage>,
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/gql/schema.graphql",
+    query_path = "src/gql/num_query.graphql",
+    response_derives = "Debug, Clone"
+)]
+pub struct NumQuery;
+
+enum WebRequest {
+    None,
+    InProgress,
+    Done(ehttp::Result<ehttp::Response>),
 }
 
-impl Resource {
-    fn from_response(ctx: &egui::Context, response: ehttp::Response) -> Self {
-        let content_type = response.content_type().unwrap_or_default();
-        let image = if content_type.starts_with("image/") {
-            RetainedImage::from_image_bytes(&response.url, &response.bytes).ok()
-        } else {
-            None
-        };
-        Self { response, image }
-    }
-}
-
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct MyApp {
     search: String,
     description: String,
@@ -36,8 +31,9 @@ pub struct MyApp {
     enabled: bool,
     shiny: bool,
     num: i64,
-    #[cfg_attr(feature = "serde", serde(skip))]
-    promise: Option<Promise<ehttp::Result<Resource>>>,
+    loading: bool,
+    finished_fetching: bool,
+    download: Arc<Mutex<WebRequest>>,
 }
 
 impl Default for MyApp {
@@ -66,7 +62,9 @@ impl Default for MyApp {
             enabled: false,
             shiny: false,
             num: 0,
-            promise: Default::default(),
+            loading: false,
+            finished_fetching: false,
+            download: Arc::new(Mutex::new(WebRequest::None)),
         }
     }
 }
@@ -80,38 +78,37 @@ impl eframe::App for MyApp {
 				let searchbox = ui.add(egui::TextEdit::singleline(&mut self.search)
 				.hint_text("Pokémon | 000").desired_width(425.0));
 
-				/* let ctx = ctx.clone();
-                let (sender, promise) = Promise::new();
-                let request = ehttp::Request::get(&EMPTY_IMAGE);
-                ehttp::fetch(request, move |response| {
-                    ctx.request_repaint(); // wake up UI thread
-                    let resource = response.map(|response| Resource::from_response(&ctx, response));
-                    sender.send(resource);
-                });
-                self.promise = Some(promise);
-
-				if let Some(promise) = &self.promise {
-					if let Some(result) = promise.ready() {
-						match result {
-							Ok(resource) => {
-								ui_resource(ui, resource);
-							}
-							Err(error) => {
-								// This should only happen if the fetch API isn't available or something similar.
-								println!("Error: {}", error);
-							}
-						}
-					} else {
-						println!("Loading...");
-					}
-				} */
-
 				if searchbox.lost_focus() && searchbox.ctx.input().key_pressed(egui::Key::Enter) {
 					if self.search.trim().is_empty() {
 						return;
 					}
 					if self.search.trim().parse::<i64>().is_ok() {
-						let query = fetch::num_query::Variables{
+						self.loading = true;
+						self.finished_fetching = false;
+
+						let query = num_query::Variables{
+							num: self.search.trim().parse::<i64>().unwrap()
+						};
+
+						let request_body = NumQuery::build_query(query);
+						let request_body = serde_json::to_vec(&request_body);
+
+						let request = ehttp::Request {
+							headers: ehttp::headers(&[("Accept", "*/*"), ("Content-Type", "application/json")]),
+							..ehttp::Request::post(
+								"https://graphqlpokemon.favware.tech/v7",
+								request_body.unwrap(),
+							)
+						};
+
+						let download_store = self.download.clone();
+						*download_store.lock().unwrap() = WebRequest::InProgress;
+						let ctx = ctx.clone();
+						ehttp::fetch(request, move |response| {
+							*download_store.lock().unwrap() = WebRequest::Done(response);
+							ctx.request_repaint(); // Wake up UI thread
+						});
+/* 						let query = fetch::num_query::Variables{
 							num: self.search.trim().parse::<i64>().unwrap()
 						};
 						let response = fetch::fetch_dex_num(query).expect("Query unsuccessful!");
@@ -139,7 +136,7 @@ impl eframe::App for MyApp {
 						self.dimensions = format!("Height: {} M | Weight: {} KG", mon.height, mon.weight).to_owned();
 						self.enabled = true;
 						self.shiny = false;
-						self.num = mon.num;
+						self.num = mon.num; */
 					} else {
 						let query = fetch::name_query::Variables{
 							pokemon: String::from(self.search.trim())
@@ -172,6 +169,53 @@ impl eframe::App for MyApp {
 						self.num = mon.num;
 					}
 					self.search = "".to_owned();
+				}
+
+				if self.finished_fetching == false {
+					let download: &WebRequest = &self.download.lock().unwrap();
+						match download {
+							WebRequest::None => {}
+							WebRequest::InProgress => {
+								self.loading = true;
+							}
+							WebRequest::Done(response) => match response {
+								Err(err) => {
+									println!("{}", err);
+								}
+								Ok(response) => {
+									let body = serde_json::from_slice::<graphql_client::Response<num_query::ResponseData>>(
+										&response.bytes,
+									)
+									.unwrap();
+									let mon = body.data.unwrap().get_pokemon_by_dex_number;
+									println!("{:?}", response.status);
+									println!("{:?}", mon);
+									println!("{:?}", format!("../assets/{}.jpg", case::lower_case(mon.types.get(0).unwrap().primary.as_str())).to_string());
+									self.loading = false;
+									self.finished_fetching = true;
+
+									self.species = format!("#{} {} | {}: {} {}: {}", mon.num, case::capitalize(&mon.species, true), "♂", mon.gender.male, "♀", mon.gender.female).to_owned();
+									self.description = mon.flavor_texts.get(0).unwrap().flavor.clone();
+									/* self.ptype = RetainedImage::from_image_bytes(
+										"ptype.jpg",
+										std::fs::read(format!("../assets/{}.jpg", case::lower_case(mon.types.get(0).unwrap().primary.as_str())).to_string()).unwrap().as_slice(),
+									).unwrap();
+									if mon.types.len() > 1 {
+										self.stype = RetainedImage::from_image_bytes(
+											"stype.jpg",
+											std::fs::read(format!("../assets/{}.jpg", case::lower_case(mon.types.get(1).unwrap().primary.as_str())).to_string()).unwrap().as_slice(),
+										).unwrap();
+									} else {
+										self.stype = RetainedImage::from_image_bytes("empty.png", include_bytes!("../assets/empty.png")).unwrap();
+									} */
+									self.abilities = format!("{}{}{}", mon.abilities.first.name, if mon.abilities.second.is_none() { format!("") } else { format!(" / {}", mon.abilities.second.as_ref().unwrap().name) }, if mon.abilities.hidden.is_none() { format!("") } else { format!(" | HA: {}", mon.abilities.hidden.as_ref().unwrap().name) }).to_owned();
+									self.dimensions = format!("Height: {} M | Weight: {} KG", mon.height, mon.weight).to_owned();
+									self.enabled = true;
+									self.shiny = false;
+									self.num = mon.num;
+								}
+							},
+						}
 				}
             });
 			ui.horizontal(|ui| {
@@ -224,6 +268,9 @@ impl eframe::App for MyApp {
 			ui.horizontal(|ui| {
                 ui.label("Powered by:");
 				ui.add(egui::Hyperlink::from_label_and_url("graphqlpokemon.favware.tech", "https://graphqlpokemon.favware.tech/v7"));
+				if self.loading {
+					ui.spinner();
+				}
 			});
         });
     }
