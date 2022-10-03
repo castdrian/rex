@@ -107,35 +107,6 @@ impl eframe::App for MyApp {
 							*download_store.lock().unwrap() = WebRequest::Done(response);
 							ctx.request_repaint(); // Wake up UI thread
 						});
-/* 						let query = fetch::num_query::Variables{
-							num: self.search.trim().parse::<i64>().unwrap()
-						};
-						let response = fetch::fetch_dex_num(query).expect("Query unsuccessful!");
-						let mon = response::gui_get_numresult(response);
-
-						self.species = format!("#{} {} | {}: {} {}: {}", mon.num, case::capitalize(&mon.species, true), "♂", mon.gender.male, "♀", mon.gender.female).to_owned();
-						self.description = mon.flavor_texts.get(0).unwrap().flavor.clone();
-						self.sprite = RetainedImage::from_image_bytes(
-							"sprite.png",
-							&fetch_image_bytes(&format!("https://www.cpokemon.com/pokes/home/{}.png", mon.num)).unwrap(),
-						).unwrap();
-						self.ptype = RetainedImage::from_image_bytes(
-							"ptype.jpg",
-							&fetch_image_bytes(&format!("https://github.com/castdrian/pkmn-screens/raw/main/data/images/icons/types/{}.jpg", case::lower_case(mon.types.get(0).unwrap().primary.as_str()))).unwrap(),
-						).unwrap();
-						if mon.types.len() > 1 {
-							self.stype = RetainedImage::from_image_bytes(
-								"stype.jpg",
-								&fetch_image_bytes(&format!("https://github.com/castdrian/pkmn-screens/raw/main/data/images/icons/types/{}.jpg", case::lower_case(mon.types.get(1).unwrap().secondary.as_str()))).unwrap(),
-							).unwrap();
-						} else {
-							self.stype = empty_image;
-						}
-						self.abilities = format!("{}{}{}", mon.abilities.first.name, if mon.abilities.second.is_none() { format!("") } else { format!(" / {}", mon.abilities.second.as_ref().unwrap().name) }, if mon.abilities.hidden.is_none() { format!("") } else { format!(" | HA: {}", mon.abilities.hidden.as_ref().unwrap().name) }).to_owned();
-						self.dimensions = format!("Height: {} M | Weight: {} KG", mon.height, mon.weight).to_owned();
-						self.enabled = true;
-						self.shiny = false;
-						self.num = mon.num; */
 					} else {
 						let query = fetch::name_query::Variables{
 							pokemon: String::from(self.search.trim())
