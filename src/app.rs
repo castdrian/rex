@@ -12,7 +12,6 @@ use voca_rs::*;
     response_derives = "Debug, Clone"
 )]
 pub struct NumQuery;
-
 enum WebRequest {
     None,
     InProgress,
