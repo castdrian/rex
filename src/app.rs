@@ -20,6 +20,28 @@ pub struct NumQuery;
 )]
 pub struct NameQuery;
 
+struct Ablities {
+    primary_name: String,
+    primary_desc: String,
+    secondary_name: Option<String>,
+    secondary_desc: Option<String>,
+    hidden_name: Option<String>,
+    hidden_desc: Option<String>,
+}
+
+impl Default for Ablities {
+    fn default() -> Self {
+        Self {
+            primary_name: String::new(),
+            primary_desc: String::new(),
+            secondary_name: None,
+            secondary_desc: None,
+            hidden_name: None,
+            hidden_desc: None,
+        }
+    }
+}
+
 enum WebRequest {
     None,
     InProgress,
@@ -39,7 +61,7 @@ pub struct MyApp {
     sprite: RetainedImage,
     ptype: RetainedImage,
     stype: RetainedImage,
-    abilities: String,
+    abilities: Ablities,
     dimensions: String,
     enabled: bool,
     shiny: bool,
@@ -88,7 +110,7 @@ impl Default for MyApp {
                 include_bytes!("../assets/empty.png"),
             )
             .unwrap(),
-            abilities: "".to_owned(),
+            abilities: Ablities::default(),
             dimensions: "".to_owned(),
             enabled: false,
             shiny: false,
@@ -249,7 +271,45 @@ impl eframe::App for MyApp {
             });
             ui.horizontal(|ui| {
                 ui.label("Abilities: ");
-                ui.label(&self.abilities);
+                ui.add_enabled_ui(self.enabled, |ui| {
+                    ui.spacing_mut().item_spacing = egui::vec2(0.0, 0.0);
+                    ui.label(&self.abilities.primary_name)
+                        .on_hover_ui_at_pointer(|ui| {
+                            ui.add_sized(
+                                egui::vec2(250.0, 50.0),
+                                egui::Label::new(&self.abilities.primary_desc).wrap(true),
+                            );
+                        });
+                    if self.abilities.secondary_name.is_some()
+                        && self.abilities.secondary_desc.is_some()
+                    {
+                        ui.label(" / ");
+                        ui.label(&self.abilities.secondary_name.as_ref().unwrap().clone())
+                            .on_hover_ui_at_pointer(|ui| {
+                                ui.add_sized(
+                                    egui::vec2(250.0, 50.0),
+                                    egui::Label::new(
+                                        &self.abilities.secondary_desc.as_ref().unwrap().clone(),
+                                    )
+                                    .wrap(true),
+                                );
+                            });
+                    }
+                    if self.abilities.hidden_name.is_some() && self.abilities.hidden_desc.is_some()
+                    {
+                        ui.label(" | HA: ");
+                        ui.label(&self.abilities.hidden_name.as_ref().unwrap().clone())
+                            .on_hover_ui_at_pointer(|ui| {
+                                ui.add_sized(
+                                    egui::vec2(250.0, 50.0),
+                                    egui::Label::new(
+                                        &self.abilities.hidden_desc.as_ref().unwrap().clone(),
+                                    )
+                                    .wrap(true),
+                                );
+                            });
+                    }
+                });
             });
             ui.horizontal(|ui| {
                 ui.label("Dimensions: ");
@@ -566,21 +626,26 @@ impl eframe::App for MyApp {
                 self.stored_stype.as_ref().unwrap().as_slice(),
             )
             .unwrap();
-            self.abilities = format!(
-                "{}{}{}",
-                mon.abilities.first.name,
-                if mon.abilities.second.is_none() {
-                    format!("")
-                } else {
-                    format!(" / {}", mon.abilities.second.as_ref().unwrap().name)
+            self.abilities = Ablities {
+                primary_name: mon.abilities.first.name.clone(),
+                primary_desc: mon.abilities.first.short_desc.clone(),
+                secondary_name: match mon.abilities.second.is_some() {
+                    true => Some(mon.abilities.second.as_ref().unwrap().name.clone()),
+                    false => None,
                 },
-                if mon.abilities.hidden.is_none() {
-                    format!("")
-                } else {
-                    format!(" | HA: {}", mon.abilities.hidden.as_ref().unwrap().name)
-                }
-            )
-            .to_owned();
+                secondary_desc: match mon.abilities.second.is_some() {
+                    true => Some(mon.abilities.second.as_ref().unwrap().short_desc.clone()),
+                    false => None,
+                },
+                hidden_name: match mon.abilities.hidden.is_some() {
+                    true => Some(mon.abilities.hidden.as_ref().unwrap().name.clone()),
+                    false => None,
+                },
+                hidden_desc: match mon.abilities.hidden.is_some() {
+                    true => Some(mon.abilities.hidden.as_ref().unwrap().short_desc.clone()),
+                    false => None,
+                },
+            };
             self.dimensions =
                 format!("Height: {} M | Weight: {} KG", mon.height, mon.weight).to_owned();
             self.enabled = true;
@@ -623,21 +688,26 @@ impl eframe::App for MyApp {
                 self.stored_stype.as_ref().unwrap().as_slice(),
             )
             .unwrap();
-            self.abilities = format!(
-                "{}{}{}",
-                mon.abilities.first.name,
-                if mon.abilities.second.is_none() {
-                    format!("")
-                } else {
-                    format!(" / {}", mon.abilities.second.as_ref().unwrap().name)
+            self.abilities = Ablities {
+                primary_name: mon.abilities.first.name.clone(),
+                primary_desc: mon.abilities.first.short_desc.clone(),
+                secondary_name: match mon.abilities.second.is_some() {
+                    true => Some(mon.abilities.second.as_ref().unwrap().name.clone()),
+                    false => None,
                 },
-                if mon.abilities.hidden.is_none() {
-                    format!("")
-                } else {
-                    format!(" | HA: {}", mon.abilities.hidden.as_ref().unwrap().name)
-                }
-            )
-            .to_owned();
+                secondary_desc: match mon.abilities.second.is_some() {
+                    true => Some(mon.abilities.second.as_ref().unwrap().short_desc.clone()),
+                    false => None,
+                },
+                hidden_name: match mon.abilities.hidden.is_some() {
+                    true => Some(mon.abilities.hidden.as_ref().unwrap().name.clone()),
+                    false => None,
+                },
+                hidden_desc: match mon.abilities.hidden.is_some() {
+                    true => Some(mon.abilities.hidden.as_ref().unwrap().short_desc.clone()),
+                    false => None,
+                },
+            };
             self.dimensions =
                 format!("Height: {} M | Weight: {} KG", mon.height, mon.weight).to_owned();
             self.enabled = true;

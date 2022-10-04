@@ -7,9 +7,9 @@ query NameQuery($pokemon: String!) {
       secondary: name
     }
     abilities {
-      first { name }
-      second { name }
-      hidden { name }
+      first { name, shortDesc }
+      second { name, shortDesc }
+      hidden { name, shortDesc }
     }
     gender {
       male
