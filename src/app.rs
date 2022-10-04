@@ -1,4 +1,3 @@
-use crate::{fetch, images::fetch_image_bytes, response};
 use eframe::egui;
 use egui_extras::RetainedImage;
 use graphql_client::GraphQLQuery;
@@ -114,146 +113,143 @@ impl Default for MyApp {
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-			let empty_image = RetainedImage::from_image_bytes("empty.png", include_bytes!("../assets/empty.png")).unwrap();
+            let empty_image =
+                RetainedImage::from_image_bytes("empty.png", include_bytes!("../assets/empty.png"))
+                    .unwrap();
 
             ui.horizontal(|ui| {
-				let searchbox = ui.add(egui::TextEdit::singleline(&mut self.search)
-				.hint_text("Pokémon | 000").desired_width(425.0));
+                let searchbox = ui.add(
+                    egui::TextEdit::singleline(&mut self.search)
+                        .hint_text("Pokémon | 000")
+                        .desired_width(425.0),
+                );
 
-				if searchbox.lost_focus() && searchbox.ctx.input().key_pressed(egui::Key::Enter) {
-					if self.search.trim().is_empty() {
-						return;
-					}
-					if self.search.trim().parse::<i64>().is_ok() {
-						if self.search.trim().parse::<i64>().unwrap() < 1 || self.search.trim().parse::<i64>().unwrap() > 898 {
-							return;
-						}
+                if searchbox.lost_focus() && searchbox.ctx.input().key_pressed(egui::Key::Enter) {
+                    if self.search.trim().is_empty() {
+                        return;
+                    }
+                    if self.search.trim().parse::<i64>().is_ok() {
+                        if self.search.trim().parse::<i64>().unwrap() < 1
+                            || self.search.trim().parse::<i64>().unwrap() > 898
+                        {
+                            return;
+                        }
 
-						self.loading = true;
-						self.update_ui = true;
-						self.finished_num_fetch = false;
-						self.finished_name_fetch = false;
-						self.finished_sprite_fetch = false;
-						self.finished_shiny_sprite_fetch = false;
-						self.finished_ptype_fetch = false;
-						self.finished_stype_fetch = false;
-						self.num_mon = None;
-						self.stored_sprite = None;
-						self.stored_shiny_sprite = None;
-						self.stored_ptype = None;
-						self.stored_stype = None;
-						self.num_web_req = Arc::new(Mutex::new(WebRequest::None));
-						self.name_web_req = Arc::new(Mutex::new(WebRequest::None));
-						self.ptype_web_req = Arc::new(Mutex::new(WebRequest::None));
-						self.stype_web_req = Arc::new(Mutex::new(WebRequest::None));
-						self.sprite_web_req = Arc::new(Mutex::new(WebRequest::None));
-						self.shiny_sprite_web_req = Arc::new(Mutex::new(WebRequest::None));
+                        self.loading = true;
+                        self.update_ui = true;
+                        self.finished_num_fetch = false;
+                        self.finished_name_fetch = false;
+                        self.finished_sprite_fetch = false;
+                        self.finished_shiny_sprite_fetch = false;
+                        self.finished_ptype_fetch = false;
+                        self.finished_stype_fetch = false;
+                        self.num_mon = None;
+                        self.stored_sprite = None;
+                        self.stored_shiny_sprite = None;
+                        self.stored_ptype = None;
+                        self.stored_stype = None;
+                        self.num_web_req = Arc::new(Mutex::new(WebRequest::None));
+                        self.name_web_req = Arc::new(Mutex::new(WebRequest::None));
+                        self.ptype_web_req = Arc::new(Mutex::new(WebRequest::None));
+                        self.stype_web_req = Arc::new(Mutex::new(WebRequest::None));
+                        self.sprite_web_req = Arc::new(Mutex::new(WebRequest::None));
+                        self.shiny_sprite_web_req = Arc::new(Mutex::new(WebRequest::None));
 
-						let query = num_query::Variables{
-							num: self.search.trim().parse::<i64>().unwrap()
-						};
+                        let query = num_query::Variables {
+                            num: self.search.trim().parse::<i64>().unwrap(),
+                        };
 
-						let num_request_body = NumQuery::build_query(query);
-						let num_request_body = serde_json::to_vec(&num_request_body);
+                        let num_request_body = NumQuery::build_query(query);
+                        let num_request_body = serde_json::to_vec(&num_request_body);
 
-						let num_request = ehttp::Request {
-							headers: ehttp::headers(&[("Accept", "*/*"), ("Content-Type", "application/json")]),
-							..ehttp::Request::post(
-								"https://graphqlpokemon.favware.tech/v7",
-								num_request_body.unwrap(),
-							)
-						};
+                        let num_request = ehttp::Request {
+                            headers: ehttp::headers(&[
+                                ("Accept", "*/*"),
+                                ("Content-Type", "application/json"),
+                            ]),
+                            ..ehttp::Request::post(
+                                "https://graphqlpokemon.favware.tech/v7",
+                                num_request_body.unwrap(),
+                            )
+                        };
 
-						let num_req_store = self.num_web_req.clone();
-						*num_req_store.lock().unwrap() = WebRequest::InProgress;
-						let ctx = ctx.clone();
-						ehttp::fetch(num_request, move |response| {
-							*num_req_store.lock().unwrap() = WebRequest::Done(response);
-							ctx.request_repaint(); // Wake up UI thread
-						});
-
-					} else {
-						let query = fetch::name_query::Variables{
-							pokemon: String::from(self.search.trim())
-						};
-						let response = fetch::fetch_dex_name(query).expect("Query unsuccessful!");
-						let mon = response::gui_get_nameresult(response);
-
-						self.species = format!("#{} {} | {}: {} {}: {}", mon.num, case::capitalize(&mon.species, true), "♂", mon.gender.male, "♀", mon.gender.female).to_owned();
-						self.description = mon.flavor_texts.get(0).unwrap().flavor.clone();
-						self.sprite = RetainedImage::from_image_bytes(
-							"sprite.png",
-							&fetch_image_bytes(&format!("https://www.cpokemon.com/pokes/home/{}.png", mon.num)).unwrap(),
-						).unwrap();
-						self.ptype = RetainedImage::from_image_bytes(
-							"ptype.jpg",
-							&fetch_image_bytes(&format!("https://github.com/castdrian/pkmn-screens/raw/main/data/images/icons/types/{}.jpg", case::lower_case(mon.types.get(0).unwrap().primary.as_str()))).unwrap(),
-						).unwrap();
-						if mon.types.len() > 1 {
-							self.stype = RetainedImage::from_image_bytes(
-								"stype.jpg",
-								&fetch_image_bytes(&format!("https://github.com/castdrian/pkmn-screens/raw/main/data/images/icons/types/{}.jpg", case::lower_case(mon.types.get(1).unwrap().secondary.as_str()))).unwrap(),
-							).unwrap();
-						} else {
-							self.stype = empty_image;
-						}
-						self.abilities = format!("{}{}{}", mon.abilities.first.name, if mon.abilities.second.is_none() { format!("") } else { format!(" / {}", mon.abilities.second.as_ref().unwrap().name) }, if mon.abilities.hidden.is_none() { format!("") } else { format!(" | HA: {}", mon.abilities.hidden.as_ref().unwrap().name) }).to_owned();
-						self.dimensions = format!("Height: {} M | Weight: {} KG", mon.height, mon.weight).to_owned();
-						self.enabled = true;
-						self.shiny = false;
-						self.num = mon.num;
-					}
-					self.search = "".to_owned();
-				}
+                        let num_req_store = self.num_web_req.clone();
+                        *num_req_store.lock().unwrap() = WebRequest::InProgress;
+                        let ctx = ctx.clone();
+                        ehttp::fetch(num_request, move |response| {
+                            *num_req_store.lock().unwrap() = WebRequest::Done(response);
+                            ctx.request_repaint(); // Wake up UI thread
+                        });
+                    } else {
+                    }
+                    self.search = "".to_owned();
+                }
             });
-			ui.horizontal(|ui| {
+            ui.horizontal(|ui| {
                 ui.label("Species: ");
                 ui.label(&self.species);
             });
-			ui.horizontal(|ui| {
+            ui.horizontal(|ui| {
                 ui.label("Types: ");
-				ui.add(egui::Image::new(self.ptype.texture_id(ctx), egui::vec2(50.0, 11.0)));
-				ui.add(egui::Image::new(self.stype.texture_id(ctx), egui::vec2(50.0, 11.0)));
+                ui.add(egui::Image::new(
+                    self.ptype.texture_id(ctx),
+                    egui::vec2(50.0, 11.0),
+                ));
+                ui.add(egui::Image::new(
+                    self.stype.texture_id(ctx),
+                    egui::vec2(50.0, 11.0),
+                ));
             });
-			ui.horizontal(|ui| {
+            ui.horizontal(|ui| {
                 ui.label("Abilities: ");
-				ui.label(&self.abilities);
+                ui.label(&self.abilities);
             });
-			ui.horizontal(|ui| {
+            ui.horizontal(|ui| {
                 ui.label("Dimensions: ");
-				ui.label(&self.dimensions);
+                ui.label(&self.dimensions);
             });
-			ui.horizontal(|ui| {
-				ui.add_enabled_ui(self.enabled, |ui| {
-					let button = ui.add(egui::ImageButton::new(
-						self.sprite.texture_id(ctx),
-						egui::vec2(128.0, 128.0),
-					));
+            ui.horizontal(|ui| {
+                ui.add_enabled_ui(self.enabled, |ui| {
+                    let button = ui.add(egui::ImageButton::new(
+                        self.sprite.texture_id(ctx),
+                        egui::vec2(128.0, 128.0),
+                    ));
 
-					if button.enabled() && button.hovered() {
-						ctx.output().cursor_icon = egui::CursorIcon::PointingHand;
-					}
+                    if button.enabled() && button.hovered() {
+                        ctx.output().cursor_icon = egui::CursorIcon::PointingHand;
+                    }
 
-					if button.clicked() {
-						if self.shiny == false {
-							self.sprite = RetainedImage::from_image_bytes("sprite.png", self.stored_shiny_sprite.as_ref().unwrap()).unwrap();
-							self.shiny = true;
-						} else {
-							self.sprite = RetainedImage::from_image_bytes("sprite.png", self.stored_sprite.as_ref().unwrap()).unwrap();
-							self.shiny = false;
-						}
-					}
-				});
-				ui.add(egui::Label::new(&self.description).wrap(true));
-			});
-			ui.add(egui::Label::new(""));
-			ui.horizontal(|ui| {
+                    if button.clicked() {
+                        if self.shiny == false {
+                            self.sprite = RetainedImage::from_image_bytes(
+                                "sprite.png",
+                                self.stored_shiny_sprite.as_ref().unwrap(),
+                            )
+                            .unwrap();
+                            self.shiny = true;
+                        } else {
+                            self.sprite = RetainedImage::from_image_bytes(
+                                "sprite.png",
+                                self.stored_sprite.as_ref().unwrap(),
+                            )
+                            .unwrap();
+                            self.shiny = false;
+                        }
+                    }
+                });
+                ui.add(egui::Label::new(&self.description).wrap(true));
+            });
+            ui.add(egui::Label::new(""));
+            ui.horizontal(|ui| {
                 ui.label("Powered by:");
-				ui.hyperlink_to("graphqlpokemon.favware.tech", "https://graphqlpokemon.favware.tech/v7");
-				if self.loading {
-					ui.spinner();
-				}
-			});
+                ui.hyperlink_to(
+                    "graphqlpokemon.favware.tech",
+                    "https://graphqlpokemon.favware.tech/v7",
+                );
+                if self.loading {
+                    ui.spinner();
+                }
+            });
         });
 
         if self.finished_num_fetch == false {
