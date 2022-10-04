@@ -34,9 +34,9 @@ pub struct MyApp {
     description: String,
     species: String,
     stored_sprite: Option<Vec<u8>>,
-    stored_shiny_sprite: Option<RetainedImage>,
-    stored_ptype: Option<RetainedImage>,
-    stored_stype: Option<RetainedImage>,
+    stored_shiny_sprite: Option<Vec<u8>>,
+    stored_ptype: Option<Vec<u8>>,
+    stored_stype: Option<Vec<u8>>,
     sprite: RetainedImage,
     ptype: RetainedImage,
     stype: RetainedImage,
@@ -126,12 +126,26 @@ impl eframe::App for MyApp {
 					}
 					if self.search.trim().parse::<i64>().is_ok() {
 						self.loading = true;
+						self.update_ui = true;
 						self.finished_num_fetch = false;
 						self.finished_name_fetch = false;
 						self.finished_sprite_fetch = false;
 						self.finished_shiny_sprite_fetch = false;
 						self.finished_ptype_fetch = false;
 						self.finished_stype_fetch = false;
+						self.num_mon = None;
+						self.stored_sprite = None;
+						self.stored_shiny_sprite = None;
+						self.stored_ptype = None;
+						self.stored_stype = None;
+						self.num_web_req = Arc::new(Mutex::new(WebRequest::None));
+						self.name_web_req = Arc::new(Mutex::new(WebRequest::None));
+						self.ptype_web_req = Arc::new(Mutex::new(WebRequest::None));
+						self.stype_web_req = Arc::new(Mutex::new(WebRequest::None));
+						self.sprite_web_req = Arc::new(Mutex::new(WebRequest::None));
+						self.shiny_sprite_web_req = Arc::new(Mutex::new(WebRequest::None));
+
+
 
 						let query = num_query::Variables{
 							num: self.search.trim().parse::<i64>().unwrap()
@@ -219,18 +233,12 @@ impl eframe::App for MyApp {
 					}
 
 					if button.clicked() {
-						if self.shiny {
-							self.sprite = RetainedImage::from_image_bytes(
-								"sprite.png",
-								&fetch_image_bytes(&format!("https://www.cpokemon.com/pokes/home/{}.png", self.num)).unwrap(),
-							).unwrap();
-							self.shiny = false;
-						} else {
-							self.sprite = RetainedImage::from_image_bytes(
-								"sprite.png",
-								&fetch_image_bytes(&format!("https://www.cpokemon.com/pokes/home/shiny/{}.png", self.num)).unwrap(),
-							).unwrap();
+						if self.shiny == false {
+							self.sprite = RetainedImage::from_image_bytes("sprite.png", self.stored_shiny_sprite.as_ref().unwrap()).unwrap();
 							self.shiny = true;
+						} else {
+							self.sprite = RetainedImage::from_image_bytes("sprite.png", self.stored_sprite.as_ref().unwrap()).unwrap();
+							self.shiny = false;
 						}
 					}
 				});
@@ -276,6 +284,16 @@ impl eframe::App for MyApp {
                     *sprite_req_store.lock().unwrap() = WebRequest::Done(response);
                     ctx.request_repaint();
                 });
+
+                let shiny_sprite_request = ehttp::Request {
+                    headers: ehttp::headers(&[("Accept", "*/*"), ("Content-Type", "image/png")]),
+                    ..ehttp::Request::get(&format!("https://dex.pkmn.dev/sprites/shiny/{}.png", self.num))
+                };
+                let shiny_sprite_req_store = self.shiny_sprite_web_req.clone();
+                *shiny_sprite_req_store.lock().unwrap() = WebRequest::InProgress;
+                ehttp::fetch(shiny_sprite_request, move |response| {
+                    *shiny_sprite_req_store.lock().unwrap() = WebRequest::Done(response);
+                });
             }
         }
         // check if the sprite request is done
@@ -289,12 +307,25 @@ impl eframe::App for MyApp {
             if let WebRequest::Done(response) = sprite_fetch {
                 let bytes = response.as_ref().unwrap().bytes.to_vec();
                 self.stored_sprite = Some(bytes);
-                self.loading = false;
                 self.finished_sprite_fetch = true;
             }
         }
+        // check if the shiny sprite request is done
+        if self.finished_shiny_sprite_fetch == false && self.finished_num_fetch == true {
+            let shiny_sprite_fetch: &WebRequest = &self.shiny_sprite_web_req.lock().unwrap();
+
+            if let WebRequest::InProgress = shiny_sprite_fetch {
+                self.loading = true;
+            }
+
+            if let WebRequest::Done(response) = shiny_sprite_fetch {
+                let bytes = response.as_ref().unwrap().bytes.to_vec();
+                self.stored_shiny_sprite = Some(bytes);
+                self.finished_shiny_sprite_fetch = true;
+            }
+        }
         // update ui when num_mon and sprites are fetched
-        if self.num_mon.is_some() && self.stored_sprite.is_some() && self.update_ui == true {
+        if self.num_mon.is_some() && self.stored_sprite.is_some() && self.stored_shiny_sprite.is_some() && self.update_ui == true {
             let mon = self.num_mon.as_ref().unwrap();
             self.species = format!(
                 "#{} {} | {}: {} {}: {}",
@@ -344,24 +375,5 @@ impl eframe::App for MyApp {
             self.loading = false;
             self.update_ui = false;
         }
-
-        /* // fetch sprites when num mon is fetched and stored sprites are empty
-        if self.num_mon.is_some() && self.stored_sprite.is_none() {
-            let mon = self.num_mon.as_ref().unwrap();
-            let sprite_request = ehttp::Request::get(format!("https://www.cpokemon.com/pokes/home/{}.png", mon.num));
-            let sprite_req_store = self.num_web_req.clone();
-                *sprite_req_store.lock().unwrap() = WebRequest::InProgress;
-                ehttp::fetch(sprite_request, move |response| {
-                    *sprite_req_store.lock().unwrap() = WebRequest::Done(response);
-                });
-
-            let shiny_sprite_request = ehttp::Request::get(format!("https://www.cpokemon.com/pokes/home/shiny/{}.png", mon.num));
-            let shiny_sprite_req_store = self.num_web_req.clone();
-                *shiny_sprite_req_store.lock().unwrap() = WebRequest::InProgress;
-                ehttp::fetch(shiny_sprite_request, move |response| {
-                    *shiny_sprite_req_store.lock().unwrap() = WebRequest::Done(response);
-                });
-
-        } */
     }
 }
