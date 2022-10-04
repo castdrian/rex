@@ -268,7 +268,7 @@ impl eframe::App for MyApp {
 				let ctx = ctx.clone();
 				let sprite_request = ehttp::Request {
 					headers: ehttp::headers(&[("Accept", "*/*"), ("Content-Type", "image/png")]),
-					..ehttp::Request::get("https://dex.pkmn.dev/rex.png")
+					..ehttp::Request::get(&format!("https://dex.pkmn.dev/sprites/{}.png", self.num))
 				};
 				let sprite_req_store = self.sprite_web_req.clone();
 					*sprite_req_store.lock().unwrap() = WebRequest::InProgress;
