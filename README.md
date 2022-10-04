@@ -1,18 +1,11 @@
 ### Rex - The Rust based PokéDex
 
-#### GUI Mode
+#### Web: [dex.pkmn.dev](https://dex.pkmn.dev)
+#### Native:
 
 ![](https://cdn.adriancastro.dev/XsA0ulm.png)
 
-#### CLI Mode
-```
-rex --num 722
-rex --name rowlet
-```
-
-![](https://cdn.adriancastro.dev/oqrRwBZ.png)
-
 ### Thanks to:
 
-- @Favna for the [GraphQL API](https://graphqlpokemon.favware.tech/)
-- @jurienhamaker for improving things by being smarter than me
+- [@Favna](https://github.com/favna) for the [GraphQL API](https://graphqlpokemon.favware.tech/v7)
+- [@Yugen](https://github.com/jurienhamaker) for improving things by being smarter than me
