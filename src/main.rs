@@ -26,7 +26,7 @@ pub fn main() {
 
     let options = eframe::NativeOptions {
         initial_window_size: Some([425.0, 290.0].into()),
-		resizable: false,
+        resizable: false,
         icon_data: Some(load_icon("././assets/rex.png")),
         ..Default::default()
     };
