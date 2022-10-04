@@ -287,7 +287,10 @@ impl eframe::App for MyApp {
 
                 let shiny_sprite_request = ehttp::Request {
                     headers: ehttp::headers(&[("Accept", "*/*"), ("Content-Type", "image/png")]),
-                    ..ehttp::Request::get(&format!("https://dex.pkmn.dev/sprites/shiny/{}.png", self.num))
+                    ..ehttp::Request::get(&format!(
+                        "https://dex.pkmn.dev/sprites/shiny/{}.png",
+                        self.num
+                    ))
                 };
                 let shiny_sprite_req_store = self.shiny_sprite_web_req.clone();
                 *shiny_sprite_req_store.lock().unwrap() = WebRequest::InProgress;
@@ -325,7 +328,11 @@ impl eframe::App for MyApp {
             }
         }
         // update ui when num_mon and sprites are fetched
-        if self.num_mon.is_some() && self.stored_sprite.is_some() && self.stored_shiny_sprite.is_some() && self.update_ui == true {
+        if self.num_mon.is_some()
+            && self.stored_sprite.is_some()
+            && self.stored_shiny_sprite.is_some()
+            && self.update_ui == true
+        {
             let mon = self.num_mon.as_ref().unwrap();
             self.species = format!(
                 "#{} {} | {}: {} {}: {}",
