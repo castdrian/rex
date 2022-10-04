@@ -43,8 +43,9 @@ pub struct MyApp {
     dimensions: String,
     enabled: bool,
     shiny: bool,
-    num: i64,
     loading: bool,
+    chose_num: bool,
+    chose_name: bool,
     finished_num_fetch: bool,
     finished_name_fetch: bool,
     finished_sprite_fetch: bool,
@@ -91,8 +92,9 @@ impl Default for MyApp {
             dimensions: "".to_owned(),
             enabled: false,
             shiny: false,
-            num: 0,
             loading: false,
+            chose_num: false,
+            chose_name: false,
             finished_num_fetch: false,
             finished_name_fetch: false,
             finished_sprite_fetch: false,
@@ -113,10 +115,6 @@ impl Default for MyApp {
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            let empty_image =
-                RetainedImage::from_image_bytes("empty.png", include_bytes!("../assets/empty.png"))
-                    .unwrap();
-
             ui.horizontal(|ui| {
                 let searchbox = ui.add(
                     egui::TextEdit::singleline(&mut self.search)
@@ -137,6 +135,7 @@ impl eframe::App for MyApp {
 
                         self.loading = true;
                         self.update_ui = true;
+                        self.chose_name = false;
                         self.finished_num_fetch = false;
                         self.finished_name_fetch = false;
                         self.finished_sprite_fetch = false;
@@ -180,7 +179,55 @@ impl eframe::App for MyApp {
                             *num_req_store.lock().unwrap() = WebRequest::Done(response);
                             ctx.request_repaint(); // Wake up UI thread
                         });
+                        self.chose_num = true;
                     } else {
+                        self.loading = true;
+                        self.update_ui = true;
+                        self.chose_num = false;
+                        self.finished_num_fetch = false;
+                        self.finished_name_fetch = false;
+                        self.finished_sprite_fetch = false;
+                        self.finished_shiny_sprite_fetch = false;
+                        self.finished_ptype_fetch = false;
+                        self.finished_stype_fetch = false;
+                        self.num_mon = None;
+                        self.stored_sprite = None;
+                        self.stored_shiny_sprite = None;
+                        self.stored_ptype = None;
+                        self.stored_stype = None;
+                        self.num_web_req = Arc::new(Mutex::new(WebRequest::None));
+                        self.name_web_req = Arc::new(Mutex::new(WebRequest::None));
+                        self.ptype_web_req = Arc::new(Mutex::new(WebRequest::None));
+                        self.stype_web_req = Arc::new(Mutex::new(WebRequest::None));
+                        self.sprite_web_req = Arc::new(Mutex::new(WebRequest::None));
+                        self.shiny_sprite_web_req = Arc::new(Mutex::new(WebRequest::None));
+
+                        let query = name_query::Variables {
+                            pokemon: self.search.trim().to_owned(),
+                        };
+
+                        let name_request_body = NameQuery::build_query(query);
+                        let name_request_body = serde_json::to_vec(&name_request_body);
+
+                        let name_request = ehttp::Request {
+                            headers: ehttp::headers(&[
+                                ("Accept", "*/*"),
+                                ("Content-Type", "application/json"),
+                            ]),
+                            ..ehttp::Request::post(
+                                "https://graphqlpokemon.favware.tech/v7",
+                                name_request_body.unwrap(),
+                            )
+                        };
+
+                        let name_req_store = self.name_web_req.clone();
+                        *name_req_store.lock().unwrap() = WebRequest::InProgress;
+                        let ctx = ctx.clone();
+                        ehttp::fetch(name_request, move |response| {
+                            *name_req_store.lock().unwrap() = WebRequest::Done(response);
+                            ctx.request_repaint(); // Wake up UI thread
+                        });
+                        self.chose_name = true;
                     }
                     self.search = "".to_owned();
                 }
@@ -252,7 +299,7 @@ impl eframe::App for MyApp {
             });
         });
 
-        if self.finished_num_fetch == false {
+        if self.finished_num_fetch == false && self.chose_num == true {
             let num_fetch: &WebRequest = &self.num_web_req.lock().unwrap();
 
             if let WebRequest::InProgress = num_fetch {
@@ -265,7 +312,6 @@ impl eframe::App for MyApp {
                 .unwrap();
                 let mon = body.data.unwrap().get_pokemon_by_dex_number;
                 self.num_mon = Some(mon.clone());
-                self.num = mon.num;
 
                 // fetch sprites once the mon is fetched
                 let ctx = ctx.clone();
@@ -336,8 +382,95 @@ impl eframe::App for MyApp {
                 self.finished_num_fetch = true;
             }
         }
+
+        if self.finished_name_fetch == false && self.chose_name == true {
+            let name_fetch: &WebRequest = &self.name_web_req.lock().unwrap();
+
+            if let WebRequest::InProgress = name_fetch {
+                self.loading = true;
+            }
+            if let WebRequest::Done(response) = name_fetch {
+                let body = serde_json::from_slice::<
+                    graphql_client::Response<name_query::ResponseData>,
+                >(&response.as_ref().unwrap().bytes)
+                .unwrap();
+                let mon = body.data.unwrap().get_fuzzy_pokemon.get(0).unwrap().clone();
+                self.name_mon = Some(mon.clone());
+
+                // fetch sprites once the mon is fetched
+                let ctx = ctx.clone();
+                let sprite_request = ehttp::Request {
+                    headers: ehttp::headers(&[("Accept", "*/*"), ("Content-Type", "image/png")]),
+                    ..ehttp::Request::get(&format!("https://dex.pkmn.dev/sprites/{}.png", mon.num))
+                };
+                let sprite_req_store = self.sprite_web_req.clone();
+                *sprite_req_store.lock().unwrap() = WebRequest::InProgress;
+                ehttp::fetch(sprite_request, move |response| {
+                    *sprite_req_store.lock().unwrap() = WebRequest::Done(response);
+                    ctx.request_repaint();
+                });
+
+                let shiny_sprite_request = ehttp::Request {
+                    headers: ehttp::headers(&[("Accept", "*/*"), ("Content-Type", "image/png")]),
+                    ..ehttp::Request::get(&format!(
+                        "https://dex.pkmn.dev/sprites/shiny/{}.png",
+                        mon.num
+                    ))
+                };
+                let shiny_sprite_req_store = self.shiny_sprite_web_req.clone();
+                *shiny_sprite_req_store.lock().unwrap() = WebRequest::InProgress;
+                ehttp::fetch(shiny_sprite_request, move |response| {
+                    *shiny_sprite_req_store.lock().unwrap() = WebRequest::Done(response);
+                });
+
+                let ptype_request = ehttp::Request {
+                    headers: ehttp::headers(&[("Accept", "*/*"), ("Content-Type", "image/jpg")]),
+                    ..ehttp::Request::get(
+                        &format!(
+                            "https://dex.pkmn.dev/types/{}.jpg",
+                            case::lower_case(mon.types.get(0).unwrap().primary.as_str())
+                        )
+                        .to_string(),
+                    )
+                };
+                let ptype_req_store = self.ptype_web_req.clone();
+                *ptype_req_store.lock().unwrap() = WebRequest::InProgress;
+                ehttp::fetch(ptype_request, move |response| {
+                    *ptype_req_store.lock().unwrap() = WebRequest::Done(response);
+                });
+
+                if mon.types.get(1).is_some() {
+                    let stype_request = ehttp::Request {
+                        headers: ehttp::headers(&[
+                            ("Accept", "*/*"),
+                            ("Content-Type", "image/jpg"),
+                        ]),
+                        ..ehttp::Request::get(
+                            &format!(
+                                "https://dex.pkmn.dev/types/{}.jpg",
+                                case::lower_case(mon.types.get(1).unwrap().primary.as_str())
+                            )
+                            .to_string(),
+                        )
+                    };
+                    let stype_req_store = self.stype_web_req.clone();
+                    *stype_req_store.lock().unwrap() = WebRequest::InProgress;
+                    ehttp::fetch(stype_request, move |response| {
+                        *stype_req_store.lock().unwrap() = WebRequest::Done(response);
+                    });
+                } else {
+                    self.finished_stype_fetch = true;
+                    self.stored_stype = Some(include_bytes!("../assets/empty.png").to_vec());
+                }
+
+                self.finished_name_fetch = true;
+            }
+        }
+
         // check if the sprite request is done
-        if self.finished_sprite_fetch == false && self.finished_num_fetch == true {
+        if self.finished_sprite_fetch == false && self.finished_num_fetch == true
+            || self.finished_sprite_fetch == false && self.finished_name_fetch == true
+        {
             let sprite_fetch: &WebRequest = &self.sprite_web_req.lock().unwrap();
 
             if let WebRequest::InProgress = sprite_fetch {
@@ -351,7 +484,9 @@ impl eframe::App for MyApp {
             }
         }
         // check if the shiny sprite request is done
-        if self.finished_shiny_sprite_fetch == false && self.finished_num_fetch == true {
+        if self.finished_shiny_sprite_fetch == false && self.finished_num_fetch == true
+            || self.finished_shiny_sprite_fetch == false && self.finished_name_fetch == true
+        {
             let shiny_sprite_fetch: &WebRequest = &self.shiny_sprite_web_req.lock().unwrap();
 
             if let WebRequest::InProgress = shiny_sprite_fetch {
@@ -365,7 +500,9 @@ impl eframe::App for MyApp {
             }
         }
         // check if the ptype icon request is done
-        if self.finished_ptype_fetch == false && self.finished_num_fetch == true {
+        if self.finished_ptype_fetch == false && self.finished_num_fetch == true
+            || self.finished_ptype_fetch == false && self.finished_name_fetch == true
+        {
             let ptype_fetch: &WebRequest = &self.ptype_web_req.lock().unwrap();
 
             if let WebRequest::InProgress = ptype_fetch {
@@ -379,7 +516,9 @@ impl eframe::App for MyApp {
             }
         }
         // check if the stype icon request is done
-        if self.finished_stype_fetch == false && self.finished_num_fetch == true {
+        if self.finished_stype_fetch == false && self.finished_num_fetch == true
+            || self.finished_stype_fetch == false && self.finished_name_fetch == true
+        {
             let stype_fetch: &WebRequest = &self.stype_web_req.lock().unwrap();
 
             if let WebRequest::InProgress = stype_fetch {
@@ -402,6 +541,63 @@ impl eframe::App for MyApp {
             && self.update_ui == true
         {
             let mon = self.num_mon.as_ref().unwrap();
+
+            self.species = format!(
+                "#{} {} | {}: {} {}: {}",
+                mon.num,
+                case::capitalize(&mon.species, true),
+                "♂",
+                mon.gender.male,
+                "♀",
+                mon.gender.female
+            )
+            .to_owned();
+            self.description = mon.flavor_texts.get(0).unwrap().flavor.clone();
+            self.sprite =
+                RetainedImage::from_image_bytes("sprite.png", self.stored_sprite.as_ref().unwrap())
+                    .unwrap();
+            self.ptype = RetainedImage::from_image_bytes(
+                "ptype.jpg",
+                self.stored_ptype.as_ref().unwrap().as_slice(),
+            )
+            .unwrap();
+            self.stype = RetainedImage::from_image_bytes(
+                "stype.jpg",
+                self.stored_stype.as_ref().unwrap().as_slice(),
+            )
+            .unwrap();
+            self.abilities = format!(
+                "{}{}{}",
+                mon.abilities.first.name,
+                if mon.abilities.second.is_none() {
+                    format!("")
+                } else {
+                    format!(" / {}", mon.abilities.second.as_ref().unwrap().name)
+                },
+                if mon.abilities.hidden.is_none() {
+                    format!("")
+                } else {
+                    format!(" | HA: {}", mon.abilities.hidden.as_ref().unwrap().name)
+                }
+            )
+            .to_owned();
+            self.dimensions =
+                format!("Height: {} M | Weight: {} KG", mon.height, mon.weight).to_owned();
+            self.enabled = true;
+            self.shiny = false;
+            self.loading = false;
+            self.update_ui = false;
+        }
+
+        // update ui when name_mon and sprites are fetched
+        if self.name_mon.is_some()
+            && self.stored_sprite.is_some()
+            && self.stored_shiny_sprite.is_some()
+            && self.stored_ptype.is_some()
+            && self.stored_stype.is_some()
+            && self.update_ui == true
+        {
+            let mon = self.name_mon.as_ref().unwrap();
 
             self.species = format!(
                 "#{} {} | {}: {} {}: {}",
