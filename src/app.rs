@@ -125,6 +125,10 @@ impl eframe::App for MyApp {
 						return;
 					}
 					if self.search.trim().parse::<i64>().is_ok() {
+						if self.search.trim().parse::<i64>().unwrap() < 1 || self.search.trim().parse::<i64>().unwrap() > 898 {
+							return;
+						}
+
 						self.loading = true;
 						self.update_ui = true;
 						self.finished_num_fetch = false;
@@ -144,8 +148,6 @@ impl eframe::App for MyApp {
 						self.stype_web_req = Arc::new(Mutex::new(WebRequest::None));
 						self.sprite_web_req = Arc::new(Mutex::new(WebRequest::None));
 						self.shiny_sprite_web_req = Arc::new(Mutex::new(WebRequest::None));
-
-
 
 						let query = num_query::Variables{
 							num: self.search.trim().parse::<i64>().unwrap()
@@ -247,7 +249,7 @@ impl eframe::App for MyApp {
 			ui.add(egui::Label::new(""));
 			ui.horizontal(|ui| {
                 ui.label("Powered by:");
-				ui.add(egui::Hyperlink::from_label_and_url("graphqlpokemon.favware.tech", "https://graphqlpokemon.favware.tech/v7"));
+				ui.hyperlink_to("graphqlpokemon.favware.tech", "https://graphqlpokemon.favware.tech/v7");
 				if self.loading {
 					ui.spinner();
 				}
@@ -266,17 +268,14 @@ impl eframe::App for MyApp {
                 >(&response.as_ref().unwrap().bytes)
                 .unwrap();
                 let mon = body.data.unwrap().get_pokemon_by_dex_number;
-                println!("{:?}", response.as_ref().unwrap().status);
-                println!("{:?}", mon);
                 self.num_mon = Some(mon.clone());
                 self.num = mon.num;
-                self.finished_num_fetch = true;
 
                 // fetch sprites once the mon is fetched
                 let ctx = ctx.clone();
                 let sprite_request = ehttp::Request {
                     headers: ehttp::headers(&[("Accept", "*/*"), ("Content-Type", "image/png")]),
-                    ..ehttp::Request::get(&format!("https://dex.pkmn.dev/sprites/{}.png", self.num))
+                    ..ehttp::Request::get(&format!("https://dex.pkmn.dev/sprites/{}.png", mon.num))
                 };
                 let sprite_req_store = self.sprite_web_req.clone();
                 *sprite_req_store.lock().unwrap() = WebRequest::InProgress;
@@ -289,7 +288,7 @@ impl eframe::App for MyApp {
                     headers: ehttp::headers(&[("Accept", "*/*"), ("Content-Type", "image/png")]),
                     ..ehttp::Request::get(&format!(
                         "https://dex.pkmn.dev/sprites/shiny/{}.png",
-                        self.num
+                        mon.num
                     ))
                 };
                 let shiny_sprite_req_store = self.shiny_sprite_web_req.clone();
@@ -297,6 +296,48 @@ impl eframe::App for MyApp {
                 ehttp::fetch(shiny_sprite_request, move |response| {
                     *shiny_sprite_req_store.lock().unwrap() = WebRequest::Done(response);
                 });
+
+                let ptype_request = ehttp::Request {
+                    headers: ehttp::headers(&[("Accept", "*/*"), ("Content-Type", "image/jpg")]),
+                    ..ehttp::Request::get(
+                        &format!(
+                            "https://dex.pkmn.dev/types/{}.jpg",
+                            case::lower_case(mon.types.get(0).unwrap().primary.as_str())
+                        )
+                        .to_string(),
+                    )
+                };
+                let ptype_req_store = self.ptype_web_req.clone();
+                *ptype_req_store.lock().unwrap() = WebRequest::InProgress;
+                ehttp::fetch(ptype_request, move |response| {
+                    *ptype_req_store.lock().unwrap() = WebRequest::Done(response);
+                });
+
+                if mon.types.get(1).is_some() {
+                    let stype_request = ehttp::Request {
+                        headers: ehttp::headers(&[
+                            ("Accept", "*/*"),
+                            ("Content-Type", "image/jpg"),
+                        ]),
+                        ..ehttp::Request::get(
+                            &format!(
+                                "https://dex.pkmn.dev/types/{}.jpg",
+                                case::lower_case(mon.types.get(1).unwrap().primary.as_str())
+                            )
+                            .to_string(),
+                        )
+                    };
+                    let stype_req_store = self.stype_web_req.clone();
+                    *stype_req_store.lock().unwrap() = WebRequest::InProgress;
+                    ehttp::fetch(stype_request, move |response| {
+                        *stype_req_store.lock().unwrap() = WebRequest::Done(response);
+                    });
+                } else {
+                    self.finished_stype_fetch = true;
+                    self.stored_stype = Some(include_bytes!("../assets/empty.png").to_vec());
+                }
+
+                self.finished_num_fetch = true;
             }
         }
         // check if the sprite request is done
@@ -327,13 +368,45 @@ impl eframe::App for MyApp {
                 self.finished_shiny_sprite_fetch = true;
             }
         }
+        // check if the ptype icon request is done
+        if self.finished_ptype_fetch == false && self.finished_num_fetch == true {
+            let ptype_fetch: &WebRequest = &self.ptype_web_req.lock().unwrap();
+
+            if let WebRequest::InProgress = ptype_fetch {
+                self.loading = true;
+            }
+
+            if let WebRequest::Done(response) = ptype_fetch {
+                let bytes = response.as_ref().unwrap().bytes.to_vec();
+                self.stored_ptype = Some(bytes);
+                self.finished_ptype_fetch = true;
+            }
+        }
+        // check if the stype icon request is done
+        if self.finished_stype_fetch == false && self.finished_num_fetch == true {
+            let stype_fetch: &WebRequest = &self.stype_web_req.lock().unwrap();
+
+            if let WebRequest::InProgress = stype_fetch {
+                self.loading = true;
+            }
+
+            if let WebRequest::Done(response) = stype_fetch {
+                let bytes = response.as_ref().unwrap().bytes.to_vec();
+                self.stored_stype = Some(bytes);
+                self.finished_stype_fetch = true;
+            }
+        }
+
         // update ui when num_mon and sprites are fetched
         if self.num_mon.is_some()
             && self.stored_sprite.is_some()
             && self.stored_shiny_sprite.is_some()
+            && self.stored_ptype.is_some()
+            && self.stored_stype.is_some()
             && self.update_ui == true
         {
             let mon = self.num_mon.as_ref().unwrap();
+
             self.species = format!(
                 "#{} {} | {}: {} {}: {}",
                 mon.num,
@@ -348,18 +421,16 @@ impl eframe::App for MyApp {
             self.sprite =
                 RetainedImage::from_image_bytes("sprite.png", self.stored_sprite.as_ref().unwrap())
                     .unwrap();
-            /* self.ptype = RetainedImage::from_image_bytes(
+            self.ptype = RetainedImage::from_image_bytes(
                 "ptype.jpg",
-                std::fs::read(format!("./assets/{}.jpg", case::lower_case(mon.types.get(0).unwrap().primary.as_str())).to_string()).unwrap().as_slice(),
-            ).unwrap();
-            if mon.types.len() > 1 {
-                self.stype = RetainedImage::from_image_bytes(
-                    "stype.jpg",
-                    std::fs::read(format!("./assets/{}.jpg", case::lower_case(mon.types.get(1).unwrap().primary.as_str())).to_string()).unwrap().as_slice(),
-                ).unwrap();
-            } else {
-                self.stype = RetainedImage::from_image_bytes("empty.png", include_bytes!("../assets/empty.png")).unwrap();
-            } */
+                self.stored_ptype.as_ref().unwrap().as_slice(),
+            )
+            .unwrap();
+            self.stype = RetainedImage::from_image_bytes(
+                "stype.jpg",
+                self.stored_stype.as_ref().unwrap().as_slice(),
+            )
+            .unwrap();
             self.abilities = format!(
                 "{}{}{}",
                 mon.abilities.first.name,
