@@ -405,21 +405,23 @@ impl eframe::App for MyApp {
 									}
 								);
 							});
-							ui.add_enabled(self.egg_data,egui::Image::new(
-								self.egg.texture_id(ctx),
-								egui::vec2(32.0, 32.0),
-							)).on_hover_ui_at_pointer(|ui| {
-								ui.add_sized(
-									egui::vec2(200.0, 40.0),
-									if self.num_mon.is_some() && self.name_mon.is_none() {
-										egui::Label::new(format!("Egg Groups: {}\nMin Hatch Steps: {}\nMax Hatch Steps: {}", self.num_mon.as_ref().unwrap().clone().egg_groups.unwrap().join(" / "), self.num_mon.as_ref().unwrap().clone().minimum_hatch_time.unwrap(), self.num_mon.as_ref().unwrap().clone().maximum_hatch_time.unwrap())).wrap(true)
-									} else if self.num_mon.is_none() && self.name_mon.is_some() {
-										egui::Label::new(format!("Egg Groups: {}\nMin Hatch Steps: {}\nMax Hatch Steps: {}", self.name_mon.as_ref().unwrap().clone().egg_groups.unwrap().join(" / "), self.name_mon.as_ref().unwrap().clone().minimum_hatch_time.unwrap(), self.name_mon.as_ref().unwrap().clone().maximum_hatch_time.unwrap())).wrap(true)
-									} else {
-										egui::Label::new("").wrap(true)
-									}
-								);
-							}).on_disabled_hover_text("Not Egg Obtainable");
+							if self.enabled {
+								ui.add_enabled(self.egg_data,egui::Image::new(
+									self.egg.texture_id(ctx),
+									egui::vec2(32.0, 32.0),
+								)).on_hover_ui_at_pointer(|ui| {
+									ui.add_sized(
+										egui::vec2(200.0, 40.0),
+										if self.num_mon.is_some() && self.name_mon.is_none() {
+											egui::Label::new(format!("Egg Groups: {}\nMin Hatch Steps: {}\nMax Hatch Steps: {}", self.num_mon.as_ref().unwrap().clone().egg_groups.unwrap().join(" / "), self.num_mon.as_ref().unwrap().clone().minimum_hatch_time.unwrap(), self.num_mon.as_ref().unwrap().clone().maximum_hatch_time.unwrap())).wrap(true)
+										} else if self.num_mon.is_none() && self.name_mon.is_some() {
+											egui::Label::new(format!("Egg Groups: {}\nMin Hatch Steps: {}\nMax Hatch Steps: {}", self.name_mon.as_ref().unwrap().clone().egg_groups.unwrap().join(" / "), self.name_mon.as_ref().unwrap().clone().minimum_hatch_time.unwrap(), self.name_mon.as_ref().unwrap().clone().maximum_hatch_time.unwrap())).wrap(true)
+										} else {
+											egui::Label::new("").wrap(true)
+										}
+									);
+								}).on_disabled_hover_text("Not Egg Obtainable");
+							}
 						});
 					});
                 });
