@@ -21,6 +21,14 @@ query NameQuery($pokemon: String!) {
       game
       flavor
     }
+	catchRate {
+      base
+      percentageWithOrdinaryPokeballAtFullHealth
+    }
+	isEggObtainable
+    eggGroups
+    minimumHatchTime
+    maximumHatchTime
     sprite
     shinySprite
     smogonTier

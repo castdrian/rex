@@ -54,10 +54,12 @@ pub struct MyApp {
     name_mon: Option<name_query::NameQueryGetFuzzyPokemon>,
     description: String,
     species: String,
+	gender_ratio: String,
     stored_sprite: Option<Vec<u8>>,
     stored_shiny_sprite: Option<Vec<u8>>,
     stored_ptype: Option<Vec<u8>>,
     stored_stype: Option<Vec<u8>>,
+	ball: RetainedImage,
     sprite: RetainedImage,
     ptype: RetainedImage,
     stype: RetainedImage,
@@ -91,13 +93,19 @@ impl Default for MyApp {
             name_mon: None,
             description: "".to_owned(),
             species: "".to_owned(),
+			gender_ratio: "".to_owned(),
             stored_sprite: None,
             stored_shiny_sprite: None,
             stored_ptype: None,
             stored_stype: None,
-            sprite: RetainedImage::from_image_bytes(
+            ball: RetainedImage::from_image_bytes(
                 "empty.png",
                 include_bytes!("../assets/empty.png"),
+            )
+            .unwrap(),
+            sprite: RetainedImage::from_image_bytes(
+                "empty.png",
+                include_bytes!("../assets/sprite.png"),
             )
             .unwrap(),
             ptype: RetainedImage::from_image_bytes(
@@ -257,6 +265,24 @@ impl eframe::App for MyApp {
             ui.horizontal(|ui| {
                 ui.label("Species: ");
                 ui.label(&self.species);
+				ui.add_enabled_ui(self.enabled, |ui| {
+					ui.add(egui::Image::new(
+						self.ball.texture_id(ctx),
+						egui::vec2(15.0, 15.0),
+					)).on_hover_ui_at_pointer(|ui| {
+						ui.add_sized(
+							egui::vec2(200.0, 40.0),
+							if self.num_mon.is_some() && self.name_mon.is_none() {
+								egui::Label::new(format!("Base Catchrate: {}\nPoké Ball Catchrate: {}", self.num_mon.as_ref().unwrap().clone().catch_rate.unwrap().base, self.num_mon.as_ref().unwrap().clone().catch_rate.unwrap().percentage_with_ordinary_pokeball_at_full_health)).wrap(true)
+							} else if self.num_mon.is_none() && self.name_mon.is_some() {
+								egui::Label::new(format!("Base Catchrate: {}\nPoké Ball Catchrate: {}", self.name_mon.as_ref().unwrap().clone().catch_rate.unwrap().base, self.name_mon.as_ref().unwrap().clone().catch_rate.unwrap().percentage_with_ordinary_pokeball_at_full_health)).wrap(true)
+							} else {
+								egui::Label::new("").wrap(true)
+							}
+						);
+					});
+				});
+				ui.label(&self.gender_ratio);
             });
             ui.horizontal(|ui| {
                 ui.label("Types: ");
@@ -603,15 +629,22 @@ impl eframe::App for MyApp {
             let mon = self.num_mon.as_ref().unwrap();
 
             self.species = format!(
-                "#{} {} | {}: {} {}: {}",
+                "#{} {}",
                 mon.num,
                 case::capitalize(&mon.species, true),
-                "♂",
+            )
+            .to_owned();
+			self.gender_ratio = format!(
+                "♂: {} ♀: {}",
                 mon.gender.male,
-                "♀",
                 mon.gender.female
             )
             .to_owned();
+			self.ball = RetainedImage::from_image_bytes(
+                "ball.png",
+                include_bytes!("../assets/ball.png"),
+            )
+            .unwrap();
             self.description = mon.flavor_texts.get(0).unwrap().flavor.clone();
             self.sprite =
                 RetainedImage::from_image_bytes("sprite.png", self.stored_sprite.as_ref().unwrap())
@@ -665,15 +698,22 @@ impl eframe::App for MyApp {
             let mon = self.name_mon.as_ref().unwrap();
 
             self.species = format!(
-                "#{} {} | {}: {} {}: {}",
+                "#{} {}",
                 mon.num,
                 case::capitalize(&mon.species, true),
-                "♂",
+            )
+            .to_owned();
+			self.gender_ratio = format!(
+                "♂: {} ♀: {}",
                 mon.gender.male,
-                "♀",
                 mon.gender.female
             )
             .to_owned();
+			self.ball = RetainedImage::from_image_bytes(
+                "ball.png",
+                include_bytes!("../assets/ball.png"),
+            )
+            .unwrap();
             self.description = mon.flavor_texts.get(0).unwrap().flavor.clone();
             self.sprite =
                 RetainedImage::from_image_bytes("sprite.png", self.stored_sprite.as_ref().unwrap())
