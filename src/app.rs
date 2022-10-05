@@ -60,6 +60,8 @@ pub struct MyApp {
     stored_ptype: Option<Vec<u8>>,
     stored_stype: Option<Vec<u8>>,
 	ball: RetainedImage,
+	smogon: RetainedImage,
+	egg: RetainedImage,
     sprite: RetainedImage,
     ptype: RetainedImage,
     stype: RetainedImage,
@@ -100,22 +102,32 @@ impl Default for MyApp {
             stored_stype: None,
             ball: RetainedImage::from_image_bytes(
                 "empty.png",
-                include_bytes!("../assets/empty.png"),
+                include_bytes!("../assets/icons/empty.png"),
+            )
+            .unwrap(),
+            smogon: RetainedImage::from_image_bytes(
+                "empty.png",
+                include_bytes!("../assets/icons/empty.png"),
+            )
+            .unwrap(),
+            egg: RetainedImage::from_image_bytes(
+                "empty.png",
+                include_bytes!("../assets/icons/empty.png"),
             )
             .unwrap(),
             sprite: RetainedImage::from_image_bytes(
                 "empty.png",
-                include_bytes!("../assets/sprite.png"),
+                include_bytes!("../assets/icons/sprite.png"),
             )
             .unwrap(),
             ptype: RetainedImage::from_image_bytes(
                 "empty.png",
-                include_bytes!("../assets/empty.png"),
+                include_bytes!("../assets/icons/empty.png"),
             )
             .unwrap(),
             stype: RetainedImage::from_image_bytes(
                 "empty.png",
-                include_bytes!("../assets/empty.png"),
+                include_bytes!("../assets/icons/empty.png"),
             )
             .unwrap(),
             abilities: Ablities::default(),
@@ -264,8 +276,8 @@ impl eframe::App for MyApp {
             });
             ui.horizontal(|ui| {
                 ui.label("Species: ");
-                ui.label(&self.species);
 				ui.add_enabled_ui(self.enabled, |ui| {
+					ui.label(&self.species);
 					ui.add(egui::Image::new(
 						self.ball.texture_id(ctx),
 						egui::vec2(15.0, 15.0),
@@ -281,8 +293,8 @@ impl eframe::App for MyApp {
 							}
 						);
 					});
+					ui.label(&self.gender_ratio);
 				});
-				ui.label(&self.gender_ratio);
             });
             ui.horizontal(|ui| {
                 ui.label("Types: ");
@@ -369,8 +381,45 @@ impl eframe::App for MyApp {
                             self.shiny = false;
                         }
                     }
+					ui.vertical(|ui| {
+						ui.horizontal(|ui| {
+							ui.set_min_height(64.0);
+							ui.add(egui::Label::new(&self.description).wrap(true));
+						});
+						ui.add_space(32.0);
+						ui.horizontal(|ui| {
+							ui.add(egui::Image::new(
+								self.smogon.texture_id(ctx),
+								egui::vec2(40.0, 32.0),
+							)).on_hover_ui_at_pointer(|ui| {
+								ui.add_sized(
+									egui::vec2(150.0, 20.0),
+									if self.num_mon.is_some() && self.name_mon.is_none() {
+										egui::Label::new(format!("Smogon Tier: {}", self.num_mon.as_ref().unwrap().clone().smogon_tier)).wrap(true)
+									} else if self.num_mon.is_none() && self.name_mon.is_some() {
+										egui::Label::new(format!("Smogon Tier: {}", self.name_mon.as_ref().unwrap().clone().smogon_tier)).wrap(true)
+									} else {
+										egui::Label::new("").wrap(true)
+									}
+								);
+							});
+							/* if self.num_mon.is_some() && self.name_mon.is_none() || self.num_mon.is_none() && self.name_mon.is_some() {
+								if self.num_mon.is_some() && self.name_mon.is_none() {
+									if self.num_mon.as_ref().unwrap().is_egg_obtainable {
+										ui.add(egui::Image::new(
+											self.egg.texture_id(ctx),
+											egui::vec2(32.0, 32.0),
+										)).on_hover_ui_at_pointer(|ui| {
+											ui.add_sized(
+												egui::vec2(200.0, 40.0),
+												egui::Label::new(format!("Egg Groups: {}\nMin Hatch Steps: {}\nMax Hatch Steps: {}", self.num_mon.as_ref().unwrap().clone().egg_groups.unwrap().join(" "), self.num_mon.as_ref().unwrap().clone().minimum_hatch_time.unwrap(), self.num_mon.as_ref().unwrap().clone().maximum_hatch_time.unwrap())).wrap(true)
+											);
+										});
+									}
+							} */
+						});
+					});
                 });
-                ui.add(egui::Label::new(&self.description).wrap(true));
             });
             ui.add(egui::Label::new(""));
             ui.horizontal(|ui| {
@@ -462,7 +511,7 @@ impl eframe::App for MyApp {
                     });
                 } else {
                     self.finished_stype_fetch = true;
-                    self.stored_stype = Some(include_bytes!("../assets/empty.png").to_vec());
+                    self.stored_stype = Some(include_bytes!("../assets/icons/empty.png").to_vec());
                 }
 
                 self.finished_num_fetch = true;
@@ -546,7 +595,7 @@ impl eframe::App for MyApp {
                     });
                 } else {
                     self.finished_stype_fetch = true;
-                    self.stored_stype = Some(include_bytes!("../assets/empty.png").to_vec());
+                    self.stored_stype = Some(include_bytes!("../assets/icons/empty.png").to_vec());
                 }
 
                 self.finished_name_fetch = true;
@@ -642,7 +691,17 @@ impl eframe::App for MyApp {
             .to_owned();
 			self.ball = RetainedImage::from_image_bytes(
                 "ball.png",
-                include_bytes!("../assets/ball.png"),
+                include_bytes!("../assets/icons/ball.png"),
+            )
+            .unwrap();
+			self.smogon = RetainedImage::from_image_bytes(
+                "smogon.png",
+                include_bytes!("../assets/icons/smogon.png"),
+            )
+            .unwrap();
+			self.egg = RetainedImage::from_image_bytes(
+                "egg.png",
+                include_bytes!("../assets/icons/egg.png"),
             )
             .unwrap();
             self.description = mon.flavor_texts.get(0).unwrap().flavor.clone();
@@ -711,7 +770,12 @@ impl eframe::App for MyApp {
             .to_owned();
 			self.ball = RetainedImage::from_image_bytes(
                 "ball.png",
-                include_bytes!("../assets/ball.png"),
+                include_bytes!("../assets/icons/ball.png"),
+            )
+            .unwrap();
+			self.smogon = RetainedImage::from_image_bytes(
+                "smogon.png",
+                include_bytes!("../assets/icons/smogon.png"),
             )
             .unwrap();
             self.description = mon.flavor_texts.get(0).unwrap().flavor.clone();

@@ -26,8 +26,10 @@ pub fn main() {
 
     let options = eframe::NativeOptions {
         initial_window_size: Some([425.0, 290.0].into()),
+        min_window_size: Some([425.0, 290.0].into()),
+        max_window_size: Some([425.0, 290.0].into()),
         resizable: false,
-        icon_data: Some(load_icon("././assets/rex.png")),
+        icon_data: Some(load_icon("././assets/icons/rex.png")),
         ..Default::default()
     };
 
