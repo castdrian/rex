@@ -54,14 +54,14 @@ pub struct MyApp {
     name_mon: Option<name_query::NameQueryGetFuzzyPokemon>,
     description: String,
     species: String,
-	gender_ratio: String,
+    gender_ratio: String,
     stored_sprite: Option<Vec<u8>>,
     stored_shiny_sprite: Option<Vec<u8>>,
     stored_ptype: Option<Vec<u8>>,
     stored_stype: Option<Vec<u8>>,
-	ball: RetainedImage,
-	smogon: RetainedImage,
-	egg: RetainedImage,
+    ball: RetainedImage,
+    smogon: RetainedImage,
+    egg: RetainedImage,
     sprite: RetainedImage,
     ptype: RetainedImage,
     stype: RetainedImage,
@@ -69,6 +69,7 @@ pub struct MyApp {
     dimensions: String,
     enabled: bool,
     shiny: bool,
+    egg_data: bool,
     loading: bool,
     chose_num: bool,
     chose_name: bool,
@@ -95,7 +96,7 @@ impl Default for MyApp {
             name_mon: None,
             description: "".to_owned(),
             species: "".to_owned(),
-			gender_ratio: "".to_owned(),
+            gender_ratio: "".to_owned(),
             stored_sprite: None,
             stored_shiny_sprite: None,
             stored_ptype: None,
@@ -134,6 +135,7 @@ impl Default for MyApp {
             dimensions: "".to_owned(),
             enabled: false,
             shiny: false,
+            egg_data: true,
             loading: false,
             chose_num: false,
             chose_name: false,
@@ -403,20 +405,21 @@ impl eframe::App for MyApp {
 									}
 								);
 							});
-							/* if self.num_mon.is_some() && self.name_mon.is_none() || self.num_mon.is_none() && self.name_mon.is_some() {
-								if self.num_mon.is_some() && self.name_mon.is_none() {
-									if self.num_mon.as_ref().unwrap().is_egg_obtainable {
-										ui.add(egui::Image::new(
-											self.egg.texture_id(ctx),
-											egui::vec2(32.0, 32.0),
-										)).on_hover_ui_at_pointer(|ui| {
-											ui.add_sized(
-												egui::vec2(200.0, 40.0),
-												egui::Label::new(format!("Egg Groups: {}\nMin Hatch Steps: {}\nMax Hatch Steps: {}", self.num_mon.as_ref().unwrap().clone().egg_groups.unwrap().join(" "), self.num_mon.as_ref().unwrap().clone().minimum_hatch_time.unwrap(), self.num_mon.as_ref().unwrap().clone().maximum_hatch_time.unwrap())).wrap(true)
-											);
-										});
+							ui.add_enabled(self.egg_data,egui::Image::new(
+								self.egg.texture_id(ctx),
+								egui::vec2(32.0, 32.0),
+							)).on_hover_ui_at_pointer(|ui| {
+								ui.add_sized(
+									egui::vec2(200.0, 40.0),
+									if self.num_mon.is_some() && self.name_mon.is_none() {
+										egui::Label::new(format!("Egg Groups: {}\nMin Hatch Steps: {}\nMax Hatch Steps: {}", self.num_mon.as_ref().unwrap().clone().egg_groups.unwrap().join(" / "), self.num_mon.as_ref().unwrap().clone().minimum_hatch_time.unwrap(), self.num_mon.as_ref().unwrap().clone().maximum_hatch_time.unwrap())).wrap(true)
+									} else if self.num_mon.is_none() && self.name_mon.is_some() {
+										egui::Label::new(format!("Egg Groups: {}\nMin Hatch Steps: {}\nMax Hatch Steps: {}", self.name_mon.as_ref().unwrap().clone().egg_groups.unwrap().join(" / "), self.name_mon.as_ref().unwrap().clone().minimum_hatch_time.unwrap(), self.name_mon.as_ref().unwrap().clone().maximum_hatch_time.unwrap())).wrap(true)
+									} else {
+										egui::Label::new("").wrap(true)
 									}
-							} */
+								);
+							}).on_disabled_hover_text("Not Egg Obtainable");
 						});
 					});
                 });
@@ -677,33 +680,26 @@ impl eframe::App for MyApp {
         {
             let mon = self.num_mon.as_ref().unwrap();
 
-            self.species = format!(
-                "#{} {}",
-                mon.num,
-                case::capitalize(&mon.species, true),
-            )
-            .to_owned();
-			self.gender_ratio = format!(
-                "♂: {} ♀: {}",
-                mon.gender.male,
-                mon.gender.female
-            )
-            .to_owned();
-			self.ball = RetainedImage::from_image_bytes(
+            self.species =
+                format!("#{} {}", mon.num, case::capitalize(&mon.species, true),).to_owned();
+            self.gender_ratio =
+                format!("♂: {} ♀: {}", mon.gender.male, mon.gender.female).to_owned();
+            self.ball = RetainedImage::from_image_bytes(
                 "ball.png",
                 include_bytes!("../assets/icons/ball.png"),
             )
             .unwrap();
-			self.smogon = RetainedImage::from_image_bytes(
+            self.smogon = RetainedImage::from_image_bytes(
                 "smogon.png",
                 include_bytes!("../assets/icons/smogon.png"),
             )
             .unwrap();
-			self.egg = RetainedImage::from_image_bytes(
+            self.egg = RetainedImage::from_image_bytes(
                 "egg.png",
                 include_bytes!("../assets/icons/egg.png"),
             )
             .unwrap();
+            self.egg_data = mon.is_egg_obtainable;
             self.description = mon.flavor_texts.get(0).unwrap().flavor.clone();
             self.sprite =
                 RetainedImage::from_image_bytes("sprite.png", self.stored_sprite.as_ref().unwrap())
@@ -756,28 +752,26 @@ impl eframe::App for MyApp {
         {
             let mon = self.name_mon.as_ref().unwrap();
 
-            self.species = format!(
-                "#{} {}",
-                mon.num,
-                case::capitalize(&mon.species, true),
-            )
-            .to_owned();
-			self.gender_ratio = format!(
-                "♂: {} ♀: {}",
-                mon.gender.male,
-                mon.gender.female
-            )
-            .to_owned();
-			self.ball = RetainedImage::from_image_bytes(
+            self.species =
+                format!("#{} {}", mon.num, case::capitalize(&mon.species, true),).to_owned();
+            self.gender_ratio =
+                format!("♂: {} ♀: {}", mon.gender.male, mon.gender.female).to_owned();
+            self.ball = RetainedImage::from_image_bytes(
                 "ball.png",
                 include_bytes!("../assets/icons/ball.png"),
             )
             .unwrap();
-			self.smogon = RetainedImage::from_image_bytes(
+            self.smogon = RetainedImage::from_image_bytes(
                 "smogon.png",
                 include_bytes!("../assets/icons/smogon.png"),
             )
             .unwrap();
+            self.egg = RetainedImage::from_image_bytes(
+                "egg.png",
+                include_bytes!("../assets/icons/egg.png"),
+            )
+            .unwrap();
+            self.egg_data = mon.is_egg_obtainable;
             self.description = mon.flavor_texts.get(0).unwrap().flavor.clone();
             self.sprite =
                 RetainedImage::from_image_bytes("sprite.png", self.stored_sprite.as_ref().unwrap())
