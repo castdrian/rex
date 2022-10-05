@@ -18,8 +18,6 @@
 	<link data-trunk rel="copy-dir" href="assets/types">
 	<link data-trunk rel="copy-dir" href="assets/sprites">
 
-
-    <link data-trunk rel="copy-file" href="assets/sw.js" />
     <link data-trunk rel="copy-file" href="assets/manifest.json" />
 
 
@@ -103,19 +101,7 @@
     <!-- The WASM code will resize the canvas dynamically -->
     <!-- the id is hardcoded in main.rs . so, make sure both match. -->
     <canvas id="rex_web"></canvas>
-
-    <!--Register Service Worker. this will cache the wasm / js scripts for offline use (for PWA functionality). -->
-    <!-- Force refresh (Ctrl + F5) to load the latest files instead of cached files  -->
-    <script>
-        // We disable caching during development so that we always view the latest version.
-        if ('serviceWorker' in navigator && window.location.hash !== "#dev") {
-            window.addEventListener('load', function () {
-                navigator.serviceWorker.register('sw.js');
-            });
-        }
-    </script>
 </body>
-
 </html>
 
 <!-- Powered by egui: https://github.com/emilk/egui/ -->
