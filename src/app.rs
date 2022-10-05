@@ -353,7 +353,17 @@ impl eframe::App for MyApp {
             });
             ui.horizontal(|ui| {
                 ui.label("Dimensions: ");
-                ui.label(&self.dimensions);
+				ui.spacing_mut().item_spacing = egui::vec2(0.0, 0.0);
+
+				if self.num_mon.is_some() && self.name_mon.is_none() && self.loading == false {
+					ui.label(format!("Height: {} M", self.num_mon.as_ref().unwrap().clone().height)).on_hover_text_at_pointer(format!("Height: {:.1} FT", self.num_mon.as_ref().unwrap().clone().height* 3.2808_f64.round()));
+					ui.label(" | ");
+					ui.label(format!("Weight: {} KG", self.num_mon.as_ref().unwrap().clone().weight)).on_hover_text_at_pointer(format!("Weight: {:.1} LB", self.num_mon.as_ref().unwrap().clone().weight* 2.2046_f64.round()));
+				} else if self.num_mon.is_none() && self.name_mon.is_some() && self.loading == false {
+					ui.label(format!("Height: {} M", self.name_mon.as_ref().unwrap().clone().height)).on_hover_text_at_pointer(format!("Height: {:.1} FT", self.name_mon.as_ref().unwrap().clone().height* 3.2808_f64.round()));
+					ui.label(" | ");
+					ui.label(format!("Weight: {} KG", self.name_mon.as_ref().unwrap().clone().weight)).on_hover_text_at_pointer(format!("Weight: {:.1} LB", self.name_mon.as_ref().unwrap().clone().weight* 2.2046_f64.round()));
+				}
             });
             ui.horizontal(|ui| {
                 ui.add_enabled_ui(self.enabled, |ui| {
