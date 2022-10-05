@@ -53,7 +53,7 @@ pub fn init_wasm_hooks() {
     tracing_wasm::set_as_global_default();
 }
 
-// when compiling to web using trunk.
+// when compiling to web using trunk:
 #[cfg(target_arch = "wasm32")]
 pub fn main() {
     init_wasm_hooks();
