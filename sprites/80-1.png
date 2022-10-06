@@ -1,0 +1,14 @@
+--2020-11-12 19:36:00--  https://archives.bulbagarden.net/media/upload/b/b8/HOME080G.png
+Resolving archives.bulbagarden.net... 2606:4700:20::ac43:4b60, 2606:4700:20::681a:34f, 2606:4700:20::681a:24f, ...
+Connecting to archives.bulbagarden.net|2606:4700:20::ac43:4b60|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 161929 (158K) [image/png]
+Saving to: “HOME080G.png”
+
+     0K .......... .......... .......... .......... .......... 31% 3.65M 0s
+    50K .......... .......... .......... .......... .......... 63% 61.7M 0s
+   100K .......... .......... .......... .......... .......... 94% 3.71M 0s
+   150K ........                                              100% 75.7M=0.03s
+
+2020-11-12 19:36:00 (5.63 MB/s) - “HOME080G.png” saved [161929/161929]
+
