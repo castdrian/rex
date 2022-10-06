@@ -1,4 +1,5 @@
 use eframe::egui;
+use egui::special_emojis::GITHUB;
 use egui_extras::RetainedImage;
 use graphql_client::GraphQLQuery;
 use std::sync::{Arc, Mutex};
@@ -54,7 +55,6 @@ pub struct MyApp {
     name_mon: Option<name_query::NameQueryGetFuzzyPokemon>,
     description: String,
     species: String,
-    gender_ratio: String,
     stored_sprite: Option<Vec<u8>>,
     stored_shiny_sprite: Option<Vec<u8>>,
     stored_ptype: Option<Vec<u8>>,
@@ -96,7 +96,6 @@ impl Default for MyApp {
             name_mon: None,
             description: "".to_owned(),
             species: "".to_owned(),
-            gender_ratio: "".to_owned(),
             stored_sprite: None,
             stored_shiny_sprite: None,
             stored_ptype: None,
@@ -187,6 +186,7 @@ impl eframe::App for MyApp {
                         self.finished_ptype_fetch = false;
                         self.finished_stype_fetch = false;
                         self.num_mon = None;
+						self.name_mon = None;
                         self.stored_sprite = None;
                         self.stored_shiny_sprite = None;
                         self.stored_ptype = None;
@@ -235,6 +235,7 @@ impl eframe::App for MyApp {
                         self.finished_ptype_fetch = false;
                         self.finished_stype_fetch = false;
                         self.num_mon = None;
+						self.name_mon = None;
                         self.stored_sprite = None;
                         self.stored_shiny_sprite = None;
                         self.stored_ptype = None;
@@ -295,7 +296,19 @@ impl eframe::App for MyApp {
 							}
 						);
 					});
-					ui.label(&self.gender_ratio);
+					if self.num_mon.is_some() && self.name_mon.is_none() && self.loading == false && self.enabled {
+						ui.spacing_mut().item_spacing = egui::vec2(0.0, 0.0);
+						ui.add(egui::Label::new(egui::RichText::new("♂:").color(egui::Color32::BLUE)).wrap(true));
+						ui.add(egui::Label::new(format!(" {} ", self.num_mon.as_ref().unwrap().clone().gender.male)).wrap(true));
+						ui.add(egui::Label::new(egui::RichText::new("♀:").color(egui::Color32::RED)).wrap(true));
+						ui.add(egui::Label::new(format!(" {} ", self.num_mon.as_ref().unwrap().clone().gender.female)).wrap(true));
+					} else if self.num_mon.is_none() && self.name_mon.is_some() && self.loading == false && self.enabled {
+						ui.spacing_mut().item_spacing = egui::vec2(0.0, 0.0);
+						ui.add(egui::Label::new(egui::RichText::new("♂:").color(egui::Color32::BLUE)).wrap(true));
+						ui.add(egui::Label::new(format!(" {} ", self.name_mon.as_ref().unwrap().clone().gender.male)).wrap(true));
+						ui.add(egui::Label::new(egui::RichText::new("♀:").color(egui::Color32::RED)).wrap(true));
+						ui.add(egui::Label::new(format!(" {} ", self.name_mon.as_ref().unwrap().clone().gender.female)).wrap(true));
+					}
 				});
             });
             ui.horizontal(|ui| {
@@ -446,6 +459,10 @@ impl eframe::App for MyApp {
                 if self.loading {
                     ui.spinner();
                 }
+				ui.with_layout(egui::Layout::right_to_left(egui::Align::RIGHT), |ui| {
+					ui.hyperlink_to(format!("{} rex on GitHub", GITHUB), "https://github.com/castdrian/rex")
+				});
+
             });
         });
 
@@ -694,8 +711,6 @@ impl eframe::App for MyApp {
 
             self.species =
                 format!("#{} {}", mon.num, case::capitalize(&mon.species, true),).to_owned();
-            self.gender_ratio =
-                format!("♂: {} ♀: {}", mon.gender.male, mon.gender.female).to_owned();
             self.ball = RetainedImage::from_image_bytes(
                 "ball.png",
                 include_bytes!("../assets/icons/ball.png"),
@@ -766,8 +781,6 @@ impl eframe::App for MyApp {
 
             self.species =
                 format!("#{} {}", mon.num, case::capitalize(&mon.species, true),).to_owned();
-            self.gender_ratio =
-                format!("♂: {} ♀: {}", mon.gender.male, mon.gender.female).to_owned();
             self.ball = RetainedImage::from_image_bytes(
                 "ball.png",
                 include_bytes!("../assets/icons/ball.png"),

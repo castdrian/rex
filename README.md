@@ -3,7 +3,7 @@
 #### Web: [dex.pkmn.dev](https://dex.pkmn.dev)
 #### Native:
 
-![](https://cdn.adriancastro.dev/XsA0ulm.png)
+![](https://cdn.adriancastro.dev/RGwzlHc.png)
 
 ### Thanks to:
 
